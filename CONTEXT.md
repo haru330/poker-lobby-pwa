@@ -71,3 +71,11 @@ _Avoid_: Highlighted cards (too generic — Combo Cards are a subset of the high
 **Tiebreak Note**:
 A short description (e.g. "K kicker") shown at Showdown explaining which rank decided a pot between two players who shared the same Hand Category.
 _Avoid_: Kicker (Tiebreak Note covers the general case, not just literal kickers)
+
+**Connection Mode**:
+Per-device choice between Online (public PeerJS broker + TURN relay, reachable over cellular or wifi-with-internet) and Local (a PeerServer on the host's own machine, LAN-only). Each device probes the public broker on startup and picks automatically — no manual setting.
+_Avoid_: Online/offline mode (ambiguous — this is about the signaling broker, not the player's own connectivity)
+
+**Join Link**:
+A URL (`<app origin>?room=<Room Code>`) and corresponding QR code shown on the Lobby screen that pre-fills the Room Code for anyone who opens or scans it.
+_Avoid_: Invite link, share link

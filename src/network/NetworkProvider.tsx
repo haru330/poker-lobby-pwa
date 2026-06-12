@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
-import Peer, { type DataConnection } from 'peerjs';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import Peer, { type DataConnection, type PeerOptions } from 'peerjs';
 import { useGameDispatch, useGameState } from '../state/GameContext';
 import type { NetworkMessage } from './messages';
 import type { Action } from '../types';
@@ -8,39 +8,62 @@ import { createPlayer } from '../utils/player';
 const TOKEN_KEY = 'poker-lobby-session-token';
 const NAME_KEY = 'poker-lobby-username';
 const RECONNECT_DELAY_MS = 1500;
+const PROBE_TIMEOUT_MS = 3000;
 
 // TURN relay so connections can establish even when both peers are behind
 // restrictive NATs/firewalls (e.g. eduroam) and direct P2P isn't possible.
 // Falls back to STUN-only if the relay is unreachable.
-const PEER_CONFIG = {
-  config: {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      {
-        urls: 'turn:openrelay.metered.ca:80',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-      },
-      {
-        urls: 'turn:openrelay.metered.ca:443',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-      },
-      {
-        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-      },
-    ],
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  {
+    urls: 'turn:openrelay.metered.ca:80',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
   },
-  // In dev (offline hotspot play), use a local PeerServer reachable at the
-  // same host the page was loaded from, instead of the public broker (which
-  // needs internet). In production (e.g. Vercel), fall back to the default
-  // public broker. See docs/adr/0004-local-peerjs-server-for-offline-play.md.
-  ...(import.meta.env.DEV
-    ? { host: window.location.hostname, port: 9000, path: '/' }
-    : {}),
-};
+  {
+    urls: 'turn:openrelay.metered.ca:443',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+];
+
+// In local/offline play, use a PeerServer reachable at the same host the page
+// was loaded from, instead of the public broker (which needs internet).
+// See docs/adr/0004-local-peerjs-server-for-offline-play.md.
+const LOCAL_PEER_EXTRA = { host: window.location.hostname, port: 9000, path: '/' };
+
+/**
+ * Probes whether the public PeerJS broker is reachable by attempting to open
+ * a throwaway connection to it. Used to decide, per-device, whether to use
+ * the public broker (online mode — reachable by cellular and LAN guests
+ * alike) or the local PeerServer (offline-hotspot mode — LAN only).
+ */
+function detectPeerConfig(): Promise<PeerOptions> {
+  return new Promise((resolve) => {
+    const onlineConfig: PeerOptions = { config: { iceServers: ICE_SERVERS } };
+    const localConfig: PeerOptions = { config: { iceServers: ICE_SERVERS }, ...LOCAL_PEER_EXTRA };
+
+    const probe = new Peer(onlineConfig);
+    let settled = false;
+
+    const finish = (config: PeerOptions) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      probe.destroy();
+      resolve(config);
+    };
+
+    const timer = setTimeout(() => finish(localConfig), PROBE_TIMEOUT_MS);
+    probe.on('open', () => finish(onlineConfig));
+    probe.on('error', () => finish(localConfig));
+  });
+}
 
 type Role = 'host' | 'guest' | null;
 
@@ -79,8 +102,10 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
   const hostConnRef = useRef<DataConnection | null>(null); // guest side
   const initializedRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const peerConfigRef = useRef<PeerOptions>({ config: { iceServers: ICE_SERVERS } });
+  const [connecting, setConnecting] = useState(false);
 
-  // --- Initialization: start as host or guest once roomCode is known ---
+  // --- Initialization: probe connectivity, then start as host or guest once roomCode is known ---
   useEffect(() => {
     if (initializedRef.current) return;
     if (!state.roomCode) return;
@@ -89,12 +114,17 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
     const me = state.players.find((p) => p.id === myId);
 
     initializedRef.current = true;
+    setConnecting(true);
 
-    if (me?.isHost) {
-      startAsHost(state.roomCode);
-    } else {
-      startAsGuest(state.roomCode);
-    }
+    detectPeerConfig().then((config) => {
+      peerConfigRef.current = config;
+      setConnecting(false);
+      if (me?.isHost) {
+        startAsHost(state.roomCode);
+      } else {
+        startAsGuest(state.roomCode);
+      }
+    });
 
     return () => {
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
@@ -119,7 +149,7 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
 
   function startAsHost(roomCode: string) {
     roleRef.current = 'host';
-    const peer = new Peer(roomCode, PEER_CONFIG);
+    const peer = new Peer(roomCode, peerConfigRef.current);
     peerRef.current = peer;
 
     peer.on('connection', (conn) => {
@@ -172,7 +202,7 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
 
   function startAsGuest(roomCode: string) {
     roleRef.current = 'guest';
-    const peer = new Peer(PEER_CONFIG);
+    const peer = new Peer(peerConfigRef.current);
     peerRef.current = peer;
 
     peer.on('open', () => connectToHost(peer, roomCode));
@@ -262,6 +292,17 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
     } else if (hostConnRef.current?.open) {
       hostConnRef.current.send({ type: 'ACTION', action } satisfies NetworkMessage);
     }
+  }
+
+  if (connecting) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', textAlign: 'center', padding: '1rem' }}>
+        <div>
+          <p style={{ fontSize: '1.1rem' }}>Checking connection&hellip;</p>
+          <p style={{ fontSize: '0.85rem', color: '#666' }}>Detecting whether the internet is reachable.</p>
+        </div>
+      </div>
+    );
   }
 
   return <NetworkContext.Provider value={{ sendAction, leave }}>{children}</NetworkContext.Provider>;

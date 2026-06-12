@@ -8,7 +8,10 @@ const TOKEN_KEY = 'poker-lobby-session-token';
 
 export function HomeScreen() {
   const dispatch = useGameDispatch();
-  const [joinCode, setJoinCode] = useState('');
+  const [joinCode, setJoinCode] = useState(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get('room');
+    return fromUrl ? fromUrl.toUpperCase().slice(0, 4) : '';
+  });
   const [name, setName] = useState(localStorage.getItem(NAME_KEY) ?? 'Player');
 
   function updateName(value: string) {

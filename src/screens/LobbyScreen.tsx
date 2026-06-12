@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import QRCode from 'qrcode';
 import { useGameDispatch, useGameState } from '../state/GameContext';
 import { useNetwork } from '../network/NetworkProvider';
 
@@ -9,6 +11,13 @@ export function LobbyScreen() {
   const { leave } = useNetwork();
   const me = state.players.find((p) => p.id === localStorage.getItem(TOKEN_KEY));
   const isHost = me?.isHost ?? false;
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+
+  const joinUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomCode}`;
+
+  useEffect(() => {
+    QRCode.toDataURL(joinUrl, { width: 200, margin: 1 }).then(setQrDataUrl);
+  }, [joinUrl]);
 
   function leaveLobby() {
     leave();
@@ -22,6 +31,13 @@ export function LobbyScreen() {
       <p>
         Room code: <strong style={{ fontSize: '1.5rem', letterSpacing: '0.3em' }}>{state.roomCode}</strong>
       </p>
+
+      {qrDataUrl && (
+        <div style={{ textAlign: 'center', margin: '1rem 0' }}>
+          <img src={qrDataUrl} alt="Scan to join" style={{ width: 200, height: 200 }} />
+          <p style={{ fontSize: '0.8rem', color: '#666', wordBreak: 'break-all' }}>{joinUrl}</p>
+        </div>
+      )}
 
       <h3>Players ({state.players.length}/8)</h3>
       <ul style={{ listStyle: 'none', padding: 0 }}>
