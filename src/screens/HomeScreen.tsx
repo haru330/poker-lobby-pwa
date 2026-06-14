@@ -80,8 +80,6 @@ export function HomeScreen() {
         setMode('join');
       } else if (zone === 'host') {
         setMode('host');
-        // Let the card snap to center before swapping to the lobby/connecting screens.
-        setTimeout(host, 350);
       }
       // zone === 'home': animate prop springs it back to rest.
     } else if (info.point.y >= lineY) {
@@ -177,7 +175,16 @@ export function HomeScreen() {
           </>
         )}
 
-        {mode === 'host' && <h1>Hold'em Stares</h1>}
+        {mode === 'host' && (
+          <>
+            <h1>Hold'em Stares</h1>
+            <div style={{ flex: 1 }} />
+            <button className="pl-button pl-button--confirm pl-ready" onClick={host} style={{ width: '100%' }}>
+              Host Game
+            </button>
+            <p className="pl-hint">hold &amp; drag below the line to go back</p>
+          </>
+        )}
         </motion.div>
       </div>
     </div>
