@@ -8,7 +8,11 @@ import '../styles/lobby.css';
 const NAME_KEY = 'poker-lobby-username';
 const TOKEN_KEY = 'poker-lobby-session-token';
 
-type Step = 'start' | 'join';
+const CARD_HEIGHT = 484;
+const LINE_RATIO = 0.75;
+
+type Mode = 'home' | 'join' | 'host';
+type Zone = 'join' | 'host' | 'home' | null;
 
 export function HomeScreen() {
   const dispatch = useGameDispatch();
@@ -20,8 +24,9 @@ export function HomeScreen() {
     const fromUrl = new URLSearchParams(window.location.search).get('room');
     return fromUrl ? fromUrl.toUpperCase().slice(0, 4) : '';
   });
-  const [step, setStep] = useState<Step>('start');
+  const [mode, setMode] = useState<Mode>('home');
   const [holding, setHolding] = useState(false);
+  const [hoverZone, setHoverZone] = useState<Zone>(null);
 
   function updateName(value: string) {
     setName(value);
@@ -48,79 +53,112 @@ export function HomeScreen() {
     dispatch({ type: 'SET_PHASE', phase: 'lobby' });
   }
 
+  function zoneAt(point: { x: number; y: number }): Zone {
+    const lineY = window.innerHeight * LINE_RATIO;
+    if (point.y >= lineY) return 'home';
+    return point.x < window.innerWidth / 2 ? 'join' : 'host';
+  }
+
+  function onDrag(_: unknown, info: PanInfo) {
+    setHoverZone(zoneAt(info.point));
+  }
+
   function onDragEnd(_: unknown, info: PanInfo) {
     setHolding(false);
-    const lineY = window.innerHeight * 0.65;
-    if (info.point.y >= lineY) return; // dropped back on the home zone — snap back
-    if (info.point.x < window.innerWidth / 2) {
-      setStep('join');
-    } else {
-      host();
+    const zone = zoneAt(info.point);
+    setHoverZone(null);
+    if (zone === 'join') {
+      setMode('join');
+    } else if (zone === 'host') {
+      setMode('host');
+      // Let the card snap to center before swapping to the lobby/connecting screens.
+      setTimeout(host, 350);
+    }
+    // zone === 'home': dragSnapToOrigin handles the bounce back.
+  }
+
+  function onReturnDragEnd(_: unknown, info: PanInfo) {
+    if (info.offset.y > 40) {
+      setMode('home');
     }
   }
 
   const ready = joinCode.length === 4 && name.trim().length > 0;
+  const centeredBottom = Math.max(0, window.innerHeight / 2 - CARD_HEIGHT / 2);
 
-  if (step === 'join') {
-    return (
-      <div className="pl-screen">
-        <div className="pl-card2 pl-card2--orange">
-          <p style={{ margin: '0.5rem 0', textAlign: 'center', fontWeight: 700, letterSpacing: '0.2em' }}>
-            ENTER ROOM CODE
-          </p>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-            <input
-              className="pl-code-input"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
-              placeholder="____"
-              maxLength={4}
-              style={{ width: '100%' }}
-            />
+  const hoverClass =
+    hoverZone === 'join' ? 'pl-hs-card--hover-join' : hoverZone === 'host' ? 'pl-hs-card--hover-host' : '';
+
+  return (
+    <div className="pl-screen pl-screen--table">
+      {mode === 'home' && (
+        <>
+          <div className="pl-table-line" />
+          <div className={`pl-drop-zone pl-drop-zone--join ${holding ? 'pl-drop-zone--visible' : ''}`}>
+            <span className="pl-drop-zone-label">JOIN</span>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button className="pl-button" onClick={() => setStep('start')} style={{ flex: '0 0 auto' }}>
-              Back
-            </button>
+          <div className={`pl-drop-zone pl-drop-zone--host ${holding ? 'pl-drop-zone--visible' : ''}`}>
+            <span className="pl-drop-zone-label">HOST</span>
+          </div>
+          <div className={`pl-drop-zone pl-drop-zone--home ${holding ? 'pl-drop-zone--visible' : ''}`} />
+        </>
+      )}
+
+      <motion.div
+        className={`pl-hs-card ${hoverClass}`}
+        drag={mode === 'home'}
+        dragSnapToOrigin
+        dragElastic={0.2}
+        onDragStart={() => setHolding(true)}
+        onDrag={onDrag}
+        onDragEnd={onDragEnd}
+        whileTap={{ cursor: 'grabbing' }}
+        animate={{ bottom: mode === 'home' ? -CARD_HEIGHT / 2 : centeredBottom }}
+        transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+      >
+        {mode === 'home' && (
+          <>
+            <h1>Hold'em Stares</h1>
+            <input
+              className="pl-input"
+              value={name}
+              onChange={(e) => updateName(e.target.value)}
+              placeholder="Your name"
+              maxLength={20}
+            />
+            <p className="pl-hint">hold &amp; drag — left to join, right to host</p>
+          </>
+        )}
+
+        {mode === 'join' && (
+          <>
+            <motion.div className="pl-return-handle" drag="y" dragConstraints={{ top: 0, bottom: 80 }} dragElastic={0.3} dragSnapToOrigin onDragEnd={onReturnDragEnd} />
+            <p style={{ margin: '0.5rem 0', textAlign: 'center', fontWeight: 700, letterSpacing: '0.2em' }}>
+              ENTER ROOM CODE
+            </p>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+              <input
+                className="pl-code-input"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
+                placeholder="____"
+                maxLength={4}
+                style={{ width: '100%' }}
+              />
+            </div>
             <button
               className={`pl-button pl-button--confirm ${ready ? 'pl-ready' : ''}`}
               disabled={!ready}
               onClick={join}
+              style={{ width: '100%' }}
             >
               Join Lobby
             </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+            <p className="pl-hint">drag the handle down to go back</p>
+          </>
+        )}
 
-  return (
-    <div className="pl-screen pl-screen--table">
-      <div className="pl-table-line" />
-      <div className={`pl-drop-zone pl-drop-zone--join ${holding ? 'pl-drop-zone--visible' : ''}`} />
-      <div className={`pl-drop-zone pl-drop-zone--host ${holding ? 'pl-drop-zone--visible' : ''}`} />
-      <div className={`pl-drop-zone pl-drop-zone--home ${holding ? 'pl-drop-zone--visible' : ''}`} />
-
-      <motion.div
-        className="pl-hs-card"
-        drag
-        dragSnapToOrigin
-        dragElastic={0.2}
-        onDragStart={() => setHolding(true)}
-        onDragEnd={onDragEnd}
-        whileTap={{ cursor: 'grabbing' }}
-        transition={{ type: 'spring', stiffness: 300, damping: 26 }}
-      >
-        <h1>Hold'em Stares</h1>
-        <input
-          className="pl-input"
-          value={name}
-          onChange={(e) => updateName(e.target.value)}
-          placeholder="Your name"
-          maxLength={20}
-        />
-        <p className="pl-hint">hold &amp; drag — left to join, right to host</p>
+        {mode === 'host' && <h1>Hold'em Stares</h1>}
       </motion.div>
     </div>
   );

@@ -16,12 +16,13 @@ export function chipColor(value: number): { bg: string; fg: string } {
   return { bg: match.bg, fg: match.fg };
 }
 
-/** Side-view stack of chips: height (1-6 chips) reflects how many denomination tiers `value` clears. */
-export function PokerChip({ value }: { value: number }) {
-  const count = Math.min(4, Math.max(1, CHIP_COLORS.filter((c) => value >= c.value).length));
+/** Side-view stack of chips: height (1-6 chips) reflects how far `value` sits between `min` and `max`. */
+export function PokerChip({ value, min, max }: { value: number; min: number; max: number }) {
+  const ratio = max > min ? (value - min) / (max - min) : 0;
+  const count = Math.min(6, Math.max(1, Math.round(1 + ratio * 5)));
   const { bg, fg } = chipColor(value);
   return (
-    <div key={value} className="pl-chip-stack pl-chip-drop">
+    <div key={count} className="pl-chip-stack pl-chip-drop">
       {Array.from({ length: count }).map((_, i) => (
         <span key={i} className="pl-chip-edge" style={{ background: bg, borderColor: fg }} />
       ))}

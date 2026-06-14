@@ -37,8 +37,6 @@ export function LobbyScreen() {
         <div className="pl-flip-inner" style={{ height: '100%' }}>
           {/* Front: room info / QR / start */}
           <div className="pl-flip-face" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <h1>Hold'em Stares</h1>
-            <p style={{ textAlign: 'center', margin: '0 0 0.25rem', fontSize: '0.85rem' }}>Room code</p>
             <p style={{ textAlign: 'center', margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.3em' }}>
               {state.roomCode}
             </p>
@@ -82,7 +80,7 @@ export function LobbyScreen() {
                 className="pl-round-button"
                 aria-label="Settings"
                 onClick={() => setFlipped(true)}
-                style={{ position: 'absolute', right: '1rem', bottom: '1rem' }}
+                style={{ position: 'absolute', right: '1rem', top: '1rem' }}
               >
                 <GearIcon />
               </button>
@@ -97,7 +95,7 @@ export function LobbyScreen() {
                 className="pl-round-button"
                 aria-label="Back"
                 onClick={() => setFlipped(false)}
-                style={{ position: 'absolute', right: '1rem', bottom: '1rem' }}
+                style={{ position: 'absolute', right: '1rem', top: '1rem' }}
               >
                 <CheckIcon />
               </button>
@@ -120,10 +118,10 @@ function SettingsPanel() {
   const dispatch = useGameDispatch();
 
   return (
-    <div>
+    <div style={{ paddingRight: '2.5rem' }}>
       <p style={{ fontWeight: 700, margin: '0 0 0.25rem' }}>starting chips</p>
       <div className="pl-chip-row">
-        <PokerChip value={state.startingChips} />
+        <PokerChip value={state.startingChips} min={50} max={500} />
         <input
           className="pl-slider"
           type="range"
@@ -138,7 +136,7 @@ function SettingsPanel() {
 
       <p style={{ fontWeight: 700, margin: '0 0 0.25rem' }}>Big/small blind</p>
       <div className="pl-chip-row">
-        <PokerChip value={state.bigBlind} />
+        <PokerChip value={state.bigBlind} min={1} max={20} />
         <input
           className="pl-slider"
           type="range"
@@ -153,7 +151,7 @@ function SettingsPanel() {
 
       <p style={{ fontWeight: 700, margin: '0 0 0.25rem' }}>Actual bet</p>
       <div className="pl-chip-row">
-        <PokerChip value={state.realMoneyPerChips.amount} />
+        <PokerChip value={state.realMoneyPerChips.amount} min={1} max={20} />
         <input
           className="pl-slider"
           type="range"

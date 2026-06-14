@@ -298,7 +298,7 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
   if (connecting) {
     return (
       <div className="pl-screen">
-        <div className="pl-card2 pl-card2--paper" style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+        <div className="pl-card2 pl-card2--blue" style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
           <h1>Hold'em Stares</h1>
           <p style={{ fontSize: '1.1rem' }}>Checking connection&hellip;</p>
           <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>Detecting whether the internet is reachable.</p>
