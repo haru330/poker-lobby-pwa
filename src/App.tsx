@@ -1,6 +1,5 @@
 import { GameProvider, useGameState } from './state/GameContext';
 import { NetworkProvider } from './network/NetworkProvider';
-import { SetupScreen } from './screens/SetupScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { LobbyScreen } from './screens/LobbyScreen';
 import { GameScreen } from './screens/GameScreen';
@@ -8,16 +7,14 @@ import { GameScreen } from './screens/GameScreen';
 function Router() {
   const state = useGameState();
   switch (state.phase) {
-    case 'setup':
-      return <SetupScreen />;
-    case 'home':
-      return <HomeScreen />;
     case 'lobby':
       return <LobbyScreen />;
     case 'game':
       return <GameScreen />;
+    case 'setup':
+    case 'home':
     default:
-      return <SetupScreen />;
+      return <HomeScreen />;
   }
 }
 

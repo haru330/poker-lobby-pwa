@@ -86,6 +86,8 @@ export interface GameState {
   pendingAction: PendingAction | null;
   startingChips: number;
   bigBlind: number;
+  /** Real-money stake: `amount` (EUR) corresponds to `chips` chips, for later win/loss calculation. */
+  realMoneyPerChips: { chips: number; amount: number };
   actionLog: ActionLogEntry[];
   results: ShowdownResult[] | null;
 }

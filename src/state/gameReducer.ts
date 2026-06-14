@@ -16,6 +16,7 @@ export const initialGameState: GameState = {
   pendingAction: null,
   startingChips: 100,
   bigBlind: 2,
+  realMoneyPerChips: { chips: 100, amount: 5 },
   actionLog: [],
   results: null,
 };
@@ -25,6 +26,7 @@ export type GameAction =
   | { type: 'SET_PHASE'; phase: GameState['phase'] }
   | { type: 'SET_STARTING_CHIPS'; amount: number }
   | { type: 'SET_BIG_BLIND'; amount: number }
+  | { type: 'SET_REAL_MONEY_PER_CHIPS'; chips: number; amount: number }
   | { type: 'ADD_PLAYER'; player: Player }
   | { type: 'REMOVE_PLAYER'; playerId: string }
   | { type: 'SET_PLAYER_STATUS'; playerId: string; status: Player['status'] }
@@ -55,6 +57,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'SET_BIG_BLIND':
       return { ...state, bigBlind: Math.max(1, action.amount) };
+
+    case 'SET_REAL_MONEY_PER_CHIPS':
+      return { ...state, realMoneyPerChips: { chips: action.chips, amount: action.amount } };
 
     case 'ADD_PLAYER': {
       // Reconnect: a player with this session token already exists, just
