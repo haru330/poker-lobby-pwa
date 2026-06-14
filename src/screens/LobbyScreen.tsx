@@ -42,7 +42,7 @@ export function LobbyScreen() {
     <div className="pl-screen pl-screen--table">
       <div className="pl-table-line" />
       <motion.div
-        className={`pl-flip-container pl-card2 ${flipped ? 'pl-card2--dark' : 'pl-card2--blue'} ${flipped ? 'flipped' : ''}`}
+        className={`pl-flip-container pl-card2 ${flipped ? 'flipped' : ''}`}
         drag
         dragSnapToOrigin
         dragElastic={0.2}
@@ -51,7 +51,7 @@ export function LobbyScreen() {
       >
         <div className="pl-flip-inner" style={{ height: '100%' }}>
           {/* Front: room info / QR / start */}
-          <div className="pl-flip-face" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div className="pl-flip-face pl-flip-face--front">
             <p style={{ textAlign: 'center', margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.3em' }}>
               {state.roomCode}
             </p>
@@ -104,7 +104,7 @@ export function LobbyScreen() {
 
           {/* Back: host settings */}
           {isHost && (
-            <div className="pl-flip-face pl-flip-face--back" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div className="pl-flip-face pl-flip-face--back">
               <SettingsPanel />
               <button
                 className="pl-round-button"
