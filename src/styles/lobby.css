@@ -46,6 +46,35 @@
   color: #efe6d3;
 }
 
+/* --- Hold'em Stares art-skinned cards (360x504 source art) --- */
+.pl-card--skin {
+  aspect-ratio: 360 / 504;
+  background-size: cover;
+  background-position: center;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pl-card--skin-box {
+  background-image: url('/assets/holdem/box_front.svg');
+  aspect-ratio: 680 / 760;
+}
+
+.pl-card--skin-join {
+  background-image: url('/assets/holdem/card_join.svg');
+}
+
+.pl-card--skin-room {
+  background-image: url('/assets/holdem/card_room_qr.svg');
+}
+
+.pl-card--skin-host {
+  background-image: url('/assets/holdem/card_host_back.svg');
+}
+
 /* Decorative card peeking out behind the front card */
 .pl-card-back {
   position: absolute;
@@ -218,18 +247,10 @@
 }
 
 .pl-chip {
-  position: relative;
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  border: 3px dashed #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  font-size: 0.7rem;
-  font-weight: 700;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.35));
 }
 
 .pl-chip-drop {

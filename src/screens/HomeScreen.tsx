@@ -65,36 +65,41 @@ export function HomeScreen() {
         <div className="pl-card-back pl-card--blue" />
 
         {step === 'menu' ? (
-          <div className={`pl-card pl-card--paper ${leaving ? 'pl-card-leaving' : ''}`}>
-            <h1 style={{ marginTop: 0, textAlign: 'center' }}>Poker Lobby</h1>
-            <input
-              className="pl-input"
-              value={name}
-              onChange={(e) => updateName(e.target.value)}
-              placeholder="Your name"
-              maxLength={20}
-              style={{ marginBottom: '1.25rem' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
-              <button className="pl-button pl-button--join" disabled={!name.trim()} onClick={() => setStep('join')}>
-                Join
-              </button>
-              <button className="pl-button pl-button--host" disabled={!name.trim()} onClick={host}>
-                Host
-              </button>
+          <div className={`pl-card pl-card--skin pl-card--skin-box ${leaving ? 'pl-card-leaving' : ''}`}>
+            <div style={{ flex: 1.6 }} />
+            <div style={{ padding: '0 2rem 0.75rem' }}>
+              <input
+                className="pl-input"
+                value={name}
+                onChange={(e) => updateName(e.target.value)}
+                placeholder="Your name"
+                maxLength={20}
+                style={{ marginBottom: '1.25rem' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
+                <button className="pl-button pl-button--join" disabled={!name.trim()} onClick={() => setStep('join')}>
+                  Join
+                </button>
+                <button className="pl-button pl-button--host" disabled={!name.trim()} onClick={host}>
+                  Host
+                </button>
+              </div>
             </div>
           </div>
         ) : (
-          <div className={`pl-card pl-card--orange pl-card-entering ${leaving ? 'pl-card-leaving' : ''}`}>
-            <p style={{ margin: '0 0 0.5rem', textAlign: 'center', fontWeight: 700 }}>Enter Room code</p>
-            <input
-              className="pl-code-input"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
-              placeholder="____"
-              maxLength={4}
-            />
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
+          <div className={`pl-card pl-card--skin pl-card--skin-join pl-card-entering ${leaving ? 'pl-card-leaving' : ''}`}>
+            <div style={{ flex: 1 }} />
+            <div style={{ padding: '0 1.5rem' }}>
+              <input
+                className="pl-code-input"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
+                placeholder="____"
+                maxLength={4}
+              />
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ display: 'flex', gap: '0.5rem', padding: '0 1.5rem 1.5rem' }}>
               <button className="pl-button" onClick={() => setStep('menu')} style={{ flex: '0 0 auto' }}>
                 Back
               </button>

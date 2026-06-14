@@ -35,15 +35,14 @@ export function LobbyScreen() {
         <div className={`pl-flip-container ${flipped ? 'flipped' : ''}`}>
           <div className="pl-flip-inner">
             {/* Front: room info / QR / start */}
-            <div className="pl-flip-face pl-card pl-card--blue">
-              <p style={{ textAlign: 'center', margin: '0 0 0.25rem', fontSize: '0.85rem' }}>Room code</p>
-              <p style={{ textAlign: 'center', margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.3em' }}>
+            <div className="pl-flip-face pl-card pl-card--skin pl-card--skin-room" style={{ paddingTop: '13%' }}>
+              <p style={{ textAlign: 'center', margin: '0 0 0.25rem', fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.3em' }}>
                 {state.roomCode}
               </p>
 
               {qrDataUrl && (
                 <div className="pl-qr-frame">
-                  <img src={qrDataUrl} alt="Scan to join" style={{ width: 180, height: 180, display: 'block' }} />
+                  <img src={qrDataUrl} alt="Scan to join" style={{ width: 140, height: 140, display: 'block' }} />
                 </div>
               )}
 
@@ -58,10 +57,6 @@ export function LobbyScreen() {
                     {p.name} — joined
                   </p>
                 ))}
-
-              {state.players.length < 2 && (
-                <p style={{ textAlign: 'center', fontSize: '0.85rem' }}>Need at least 2 players to start.</p>
-              )}
 
               {isHost && (
                 <button

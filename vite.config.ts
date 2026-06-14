@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Poker Lobby',
-        short_name: 'Poker Lobby',
+        name: "Hold'em Stares",
+        short_name: "Hold'em Stares",
         description: 'Peer-to-peer poker lobby and table',
         theme_color: '#863bff',
         background_color: '#ffffff',
