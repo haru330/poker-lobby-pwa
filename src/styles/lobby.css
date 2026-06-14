@@ -167,6 +167,8 @@
 .pl-flip-container {
   position: relative;
   perspective: 1200px;
+  cursor: grab;
+  touch-action: none;
 }
 
 .pl-flip-inner {

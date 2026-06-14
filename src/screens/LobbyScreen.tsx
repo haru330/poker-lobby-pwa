@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion, type PanInfo } from 'framer-motion';
 import QRCode from 'qrcode';
 import { useGameDispatch, useGameState } from '../state/GameContext';
 import { useNetwork } from '../network/NetworkProvider';
@@ -31,9 +32,23 @@ export function LobbyScreen() {
     dispatch({ type: 'LEAVE_LOBBY' });
   }
 
+  function onDragEnd(_: unknown, info: PanInfo) {
+    if (info.point.y >= window.innerHeight * 0.75) {
+      leaveLobby();
+    }
+  }
+
   return (
-    <div className="pl-screen">
-      <div className={`pl-flip-container pl-card2 ${flipped ? 'pl-card2--dark' : 'pl-card2--blue'} ${flipped ? 'flipped' : ''}`}>
+    <div className="pl-screen pl-screen--table">
+      <div className="pl-table-line" />
+      <motion.div
+        className={`pl-flip-container pl-card2 ${flipped ? 'pl-card2--dark' : 'pl-card2--blue'} ${flipped ? 'flipped' : ''}`}
+        drag
+        dragSnapToOrigin
+        dragElastic={0.2}
+        transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+        onDragEnd={onDragEnd}
+      >
         <div className="pl-flip-inner" style={{ height: '100%' }}>
           {/* Front: room info / QR / start */}
           <div className="pl-flip-face" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -102,13 +117,9 @@ export function LobbyScreen() {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {!isHost && <p style={{ textAlign: 'center', marginTop: '1rem', color: '#efe6d3' }}>Waiting for host to start the game...</p>}
-
-      <button className="pl-button" onClick={leaveLobby} style={{ position: 'fixed', bottom: '1rem', left: '1.5rem', right: '1.5rem', maxWidth: 288 - 40, margin: '0 auto' }}>
-        Leave Lobby
-      </button>
     </div>
   );
 }

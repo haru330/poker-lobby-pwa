@@ -53,47 +53,61 @@ export function HomeScreen() {
     dispatch({ type: 'SET_PHASE', phase: 'lobby' });
   }
 
+  const lineY = window.innerHeight * LINE_RATIO;
+
   function zoneAt(point: { x: number; y: number }): Zone {
-    const lineY = window.innerHeight * LINE_RATIO;
     if (point.y >= lineY) return 'home';
     return point.x < window.innerWidth / 2 ? 'join' : 'host';
   }
 
   function onDrag(_: unknown, info: PanInfo) {
-    setHoverZone(zoneAt(info.point));
+    if (mode === 'home') {
+      setHoverZone(zoneAt(info.point));
+    } else if (info.point.y >= lineY) {
+      setHoverZone('home');
+    } else {
+      setHoverZone(null);
+    }
   }
 
   function onDragEnd(_: unknown, info: PanInfo) {
     setHolding(false);
-    const zone = zoneAt(info.point);
     setHoverZone(null);
-    if (zone === 'join') {
-      setMode('join');
-    } else if (zone === 'host') {
-      setMode('host');
-      // Let the card snap to center before swapping to the lobby/connecting screens.
-      setTimeout(host, 350);
-    }
-    // zone === 'home': dragSnapToOrigin handles the bounce back.
-  }
 
-  function onReturnDragEnd(_: unknown, info: PanInfo) {
-    if (info.offset.y > 40) {
+    if (mode === 'home') {
+      const zone = zoneAt(info.point);
+      if (zone === 'join') {
+        setMode('join');
+      } else if (zone === 'host') {
+        setMode('host');
+        // Let the card snap to center before swapping to the lobby/connecting screens.
+        setTimeout(host, 350);
+      }
+      // zone === 'home': animate prop springs it back to rest.
+    } else if (info.point.y >= lineY) {
       setMode('home');
     }
   }
 
   const ready = joinCode.length === 4 && name.trim().length > 0;
   const centeredBottom = Math.max(0, window.innerHeight / 2 - CARD_HEIGHT / 2);
+  const homeBottom = -(CARD_HEIGHT / 2 + window.innerHeight * 0.1);
 
+  const modeClass = mode === 'join' ? 'pl-hs-card--hover-join' : mode === 'host' ? 'pl-hs-card--hover-host' : '';
   const hoverClass =
-    hoverZone === 'join' ? 'pl-hs-card--hover-join' : hoverZone === 'host' ? 'pl-hs-card--hover-host' : '';
+    mode === 'home'
+      ? hoverZone === 'join'
+        ? 'pl-hs-card--hover-join'
+        : hoverZone === 'host'
+          ? 'pl-hs-card--hover-host'
+          : ''
+      : '';
 
   return (
     <div className="pl-screen pl-screen--table">
+      <div className="pl-table-line" />
       {mode === 'home' && (
         <>
-          <div className="pl-table-line" />
           <div className={`pl-drop-zone pl-drop-zone--join ${holding ? 'pl-drop-zone--visible' : ''}`}>
             <span className="pl-drop-zone-label">JOIN</span>
           </div>
@@ -105,15 +119,15 @@ export function HomeScreen() {
       )}
 
       <motion.div
-        className={`pl-hs-card ${hoverClass}`}
-        drag={mode === 'home'}
+        className={`pl-hs-card ${modeClass} ${hoverClass}`}
+        drag
         dragSnapToOrigin
         dragElastic={0.2}
         onDragStart={() => setHolding(true)}
         onDrag={onDrag}
         onDragEnd={onDragEnd}
         whileTap={{ cursor: 'grabbing' }}
-        animate={{ bottom: mode === 'home' ? -CARD_HEIGHT / 2 : centeredBottom }}
+        animate={{ bottom: mode === 'home' ? homeBottom : centeredBottom }}
         transition={{ type: 'spring', stiffness: 300, damping: 26 }}
       >
         {mode === 'home' && (
@@ -132,7 +146,6 @@ export function HomeScreen() {
 
         {mode === 'join' && (
           <>
-            <motion.div className="pl-return-handle" drag="y" dragConstraints={{ top: 0, bottom: 80 }} dragElastic={0.3} dragSnapToOrigin onDragEnd={onReturnDragEnd} />
             <p style={{ margin: '0.5rem 0', textAlign: 'center', fontWeight: 700, letterSpacing: '0.2em' }}>
               ENTER ROOM CODE
             </p>
@@ -154,7 +167,7 @@ export function HomeScreen() {
             >
               Join Lobby
             </button>
-            <p className="pl-hint">drag the handle down to go back</p>
+            <p className="pl-hint">hold &amp; drag below the line to go back</p>
           </>
         )}
 
