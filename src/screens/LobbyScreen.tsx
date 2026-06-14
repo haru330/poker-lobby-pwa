@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import { useGameDispatch, useGameState } from '../state/GameContext';
 import { useNetwork } from '../network/NetworkProvider';
 import { PokerChip } from '../components/PokerChip';
+import { Sheet } from '../components/Sheet';
 import '../styles/lobby.css';
 
 const TOKEN_KEY = 'poker-lobby-session-token';
@@ -31,12 +32,13 @@ export function LobbyScreen() {
 
   return (
     <div className="pl-screen">
-      <div className="pl-stack" style={{ maxWidth: 320 }}>
-        <div className={`pl-flip-container ${flipped ? 'flipped' : ''}`}>
-          <div className="pl-flip-inner">
+      <Sheet expanded variant={flipped ? 'dark' : 'blue'}>
+        <div className={`pl-flip-container ${flipped ? 'flipped' : ''}`} style={{ flex: 1 }}>
+          <div className="pl-flip-inner" style={{ height: '100%' }}>
             {/* Front: room info / QR / start */}
-            <div className="pl-flip-face pl-card pl-card--skin pl-card--skin-room" style={{ paddingTop: '13%' }}>
-              <p style={{ textAlign: 'center', margin: '0 0 0.25rem', fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.3em' }}>
+            <div className="pl-flip-face" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <p style={{ textAlign: 'center', margin: '0 0 0.25rem', fontSize: '0.85rem' }}>Room code</p>
+              <p style={{ textAlign: 'center', margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.3em' }}>
                 {state.roomCode}
               </p>
 
@@ -58,12 +60,17 @@ export function LobbyScreen() {
                   </p>
                 ))}
 
+              {state.players.length < 2 && (
+                <p style={{ textAlign: 'center', fontSize: '0.85rem' }}>Need at least 2 players to start.</p>
+              )}
+
+              <div style={{ flex: 1 }} />
+
               {isHost && (
                 <button
                   className="pl-button pl-button--start"
                   disabled={state.players.length < 2}
                   onClick={() => dispatch({ type: 'START_GAME' })}
-                  style={{ marginTop: '0.75rem' }}
                 >
                   start game
                 </button>
@@ -83,7 +90,7 @@ export function LobbyScreen() {
 
             {/* Back: host settings */}
             {isHost && (
-              <div className="pl-flip-face pl-flip-face--back pl-card pl-card--dark">
+              <div className="pl-flip-face pl-flip-face--back" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <SettingsPanel />
                 <button
                   className="pl-round-button"
@@ -98,12 +105,12 @@ export function LobbyScreen() {
           </div>
         </div>
 
-        {!isHost && <p style={{ textAlign: 'center', color: '#efe6d3', marginTop: '1rem' }}>Waiting for host to start the game...</p>}
+        {!isHost && <p style={{ textAlign: 'center', marginTop: '1rem' }}>Waiting for host to start the game...</p>}
 
         <button className="pl-button" onClick={leaveLobby} style={{ width: '100%', marginTop: '1rem' }}>
           Leave Lobby
         </button>
-      </div>
+      </Sheet>
     </div>
   );
 }
@@ -158,9 +165,7 @@ function SettingsPanel() {
             dispatch({ type: 'SET_REAL_MONEY_PER_CHIPS', chips: state.realMoneyPerChips.chips, amount: Number(e.target.value) })
           }
         />
-        <span>
-          {state.realMoneyPerChips.amount} EUR / {state.realMoneyPerChips.chips} chips
-        </span>
+        <span>{state.realMoneyPerChips.amount} EUR</span>
       </div>
     </div>
   );

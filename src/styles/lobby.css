@@ -1,117 +1,98 @@
 /* Papers-Please-ish flat paper cards: thick ink borders, muted paper tones, simple slides/flips. */
 
 .pl-screen {
-  min-height: 100vh;
+  position: fixed;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
   box-sizing: border-box;
   background: #2b2a28;
+  overflow: hidden;
 }
 
-.pl-stack {
-  position: relative;
-  width: 100%;
-  max-width: 340px;
-}
-
-.pl-card {
-  position: relative;
-  width: 100%;
+/* --- Persistent bottom sheet shell --- */
+.pl-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100dvh;
   box-sizing: border-box;
-  border-radius: 10px;
   border: 2px solid #1c1b19;
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
-  padding: 1.5rem;
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -6px 0 rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.pl-card--paper {
+.pl-sheet--paper {
   background: #efe6d3;
   color: #2b2a28;
 }
 
-.pl-card--blue {
+.pl-sheet--blue {
   background: #6fa8d6;
   color: #1c1b19;
 }
 
-.pl-card--orange {
+.pl-sheet--orange {
   background: #e8b773;
   color: #1c1b19;
 }
 
-.pl-card--dark {
+.pl-sheet--dark {
   background: #2f3640;
   color: #efe6d3;
 }
 
-/* --- Hold'em Stares art-skinned cards (360x504 source art) --- */
-.pl-card--skin {
-  aspect-ratio: 360 / 504;
-  background-size: cover;
-  background-position: center;
-  border: none;
-  box-shadow: none;
-  padding: 0;
+.pl-sheet-header {
+  height: 15dvh;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pl-sheet-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+.pl-sheet-body {
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 0 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
 }
 
-.pl-card--skin-box {
-  background-image: url('/assets/holdem/box_front.svg');
-  aspect-ratio: 680 / 760;
-}
-
-.pl-card--skin-join {
-  background-image: url('/assets/holdem/card_join.svg');
-}
-
-.pl-card--skin-room {
-  background-image: url('/assets/holdem/card_room_qr.svg');
-}
-
-.pl-card--skin-host {
-  background-image: url('/assets/holdem/card_host_back.svg');
-}
-
-/* Decorative card peeking out behind the front card */
-.pl-card-back {
+/* --- Coins floating above the collapsed sheet --- */
+.pl-coin {
   position: absolute;
-  left: 6%;
-  right: 6%;
-  top: 14px;
-  height: 100%;
-  z-index: -1;
-  border-radius: 10px;
+  bottom: calc(15dvh + 2rem);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
   border: 2px solid #1c1b19;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
 }
 
-/* Slide-out transition when proceeding to the next step */
-.pl-card-leaving {
-  animation: pl-slide-up 0.32s ease forwards;
+.pl-coin--join {
+  left: 12%;
+  background: #e8b773;
 }
 
-@keyframes pl-slide-up {
-  to {
-    transform: translateY(-130%);
-    opacity: 0;
-  }
-}
-
-.pl-card-entering {
-  animation: pl-slide-in 0.32s ease forwards;
-}
-
-@keyframes pl-slide-in {
-  from {
-    transform: translateY(40px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.pl-coin--host {
+  right: 12%;
+  background: #6fa8d6;
 }
 
 /* --- Flip card (lobby info <-> settings) --- */
@@ -246,11 +227,22 @@
   white-space: nowrap;
 }
 
-.pl-chip {
-  width: 36px;
-  height: 36px;
+/* Side-on view of a stack of chips: thin rounded edges stacked upward. */
+.pl-chip-stack {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  width: 40px;
   flex-shrink: 0;
-  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.35));
+}
+
+.pl-chip-edge {
+  width: 40px;
+  height: 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  margin-top: -6px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
 }
 
 .pl-chip-drop {

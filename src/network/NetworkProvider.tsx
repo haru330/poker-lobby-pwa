@@ -4,6 +4,8 @@ import { useGameDispatch, useGameState } from '../state/GameContext';
 import type { NetworkMessage } from './messages';
 import type { Action } from '../types';
 import { createPlayer } from '../utils/player';
+import { Sheet } from '../components/Sheet';
+import '../styles/lobby.css';
 
 const TOKEN_KEY = 'poker-lobby-session-token';
 const NAME_KEY = 'poker-lobby-username';
@@ -296,11 +298,14 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
 
   if (connecting) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', textAlign: 'center', padding: '1rem' }}>
-        <div>
-          <p style={{ fontSize: '1.1rem' }}>Checking connection&hellip;</p>
-          <p style={{ fontSize: '0.85rem', color: '#666' }}>Detecting whether the internet is reachable.</p>
+      <div className="pl-screen">
+        <div style={{ position: 'absolute', top: '25%', left: 0, right: 0, textAlign: 'center' }}>
+          <p style={{ fontSize: '1.1rem', color: '#efe6d3' }}>Checking connection&hellip;</p>
+          <p style={{ fontSize: '0.85rem', color: '#efe6d3', opacity: 0.7 }}>Detecting whether the internet is reachable.</p>
         </div>
+        <Sheet expanded={false} variant="paper">
+          <div />
+        </Sheet>
       </div>
     );
   }
