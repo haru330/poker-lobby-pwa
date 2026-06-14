@@ -9,7 +9,7 @@ const NAME_KEY = 'poker-lobby-username';
 const TOKEN_KEY = 'poker-lobby-session-token';
 
 const CARD_HEIGHT = 484;
-const LINE_RATIO = 0.75;
+const LINE_RATIO = 0.8;
 
 type Mode = 'home' | 'join' | 'host';
 type Zone = 'join' | 'host' | 'home' | null;
@@ -114,22 +114,28 @@ export function HomeScreen() {
           <div className={`pl-drop-zone pl-drop-zone--host ${holding ? 'pl-drop-zone--visible' : ''}`}>
             <span className="pl-drop-zone-label">HOST</span>
           </div>
-          <div className={`pl-drop-zone pl-drop-zone--home ${holding ? 'pl-drop-zone--visible' : ''}`} />
+          <div className={`pl-drop-zone pl-drop-zone--home ${holding ? 'pl-drop-zone--visible' : ''}`}>
+            <span className="pl-drop-zone-label">HOME</span>
+          </div>
         </>
       )}
+      {mode !== 'home' && (
+        <div className={`pl-drop-zone pl-drop-zone--home ${holding ? 'pl-drop-zone--visible' : ''}`}>
+          <span className="pl-drop-zone-label">HOME</span>
+        </div>
+      )}
 
-      <motion.div
-        className={`pl-hs-card ${modeClass} ${hoverClass}`}
-        drag
-        dragSnapToOrigin
-        dragElastic={0.2}
-        onDragStart={() => setHolding(true)}
-        onDrag={onDrag}
-        onDragEnd={onDragEnd}
-        whileTap={{ cursor: 'grabbing' }}
-        animate={{ bottom: mode === 'home' ? homeBottom : centeredBottom }}
-        transition={{ type: 'spring', stiffness: 300, damping: 26 }}
-      >
+      <div className="pl-hs-card-wrap" style={{ bottom: mode === 'home' ? homeBottom : centeredBottom }}>
+        <motion.div
+          className={`pl-hs-card ${modeClass} ${hoverClass}`}
+          drag
+          dragSnapToOrigin
+          dragElastic={0.2}
+          onDragStart={() => setHolding(true)}
+          onDrag={onDrag}
+          onDragEnd={onDragEnd}
+          whileTap={{ cursor: 'grabbing' }}
+        >
         {mode === 'home' && (
           <>
             <h1>Hold'em Stares</h1>
@@ -172,7 +178,8 @@ export function HomeScreen() {
         )}
 
         {mode === 'host' && <h1>Hold'em Stares</h1>}
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

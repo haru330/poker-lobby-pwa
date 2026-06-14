@@ -33,7 +33,7 @@ export function LobbyScreen() {
   }
 
   function onDragEnd(_: unknown, info: PanInfo) {
-    if (info.point.y >= window.innerHeight * 0.75) {
+    if (info.point.y >= window.innerHeight * 0.8) {
       leaveLobby();
     }
   }

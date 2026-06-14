@@ -64,10 +64,10 @@
   background: #2b2a28;
 }
 
-/* Crossing line at 75% down the viewport (50% + 25%) */
+/* Crossing line at 80% down the viewport (50% + 30%) */
 .pl-table-line {
   position: fixed;
-  top: 75vh;
+  top: 80vh;
   left: 5%;
   right: 5%;
   height: 2px;
@@ -76,13 +76,23 @@
   pointer-events: none;
 }
 
-/* The draggable home card: rests at the bottom with only its top half visible */
-.pl-hs-card {
+/* Positioning wrapper: CSS-transitions `bottom` so the card slides as one
+   continuous motion instead of fighting framer's drag-snap transform. */
+.pl-hs-card-wrap {
   position: fixed;
   left: 50%;
   width: 346px;
   height: 484px;
   margin-left: -173px;
+  z-index: 2;
+  transition: bottom 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* The draggable home card: rests at the bottom with only its top half visible */
+.pl-hs-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
   border: 2px solid #1c1b19;
   border-radius: 12px;
@@ -96,7 +106,6 @@
   gap: 0.75rem;
   cursor: grab;
   touch-action: none;
-  z-index: 2;
   transition: background 0.15s ease;
 }
 
@@ -131,7 +140,7 @@
   top: 0;
   left: 0;
   width: 50%;
-  height: 75vh;
+  height: 80vh;
   background: rgba(232, 183, 115, 0.35);
 }
 
@@ -139,12 +148,12 @@
   top: 0;
   right: 0;
   width: 50%;
-  height: 75vh;
+  height: 80vh;
   background: rgba(111, 168, 214, 0.35);
 }
 
 .pl-drop-zone--home {
-  top: 75vh;
+  top: 80vh;
   left: 0;
   right: 0;
   bottom: 0;
