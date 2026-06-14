@@ -79,3 +79,7 @@ _Avoid_: Online/offline mode (ambiguous — this is about the signaling broker, 
 **Join Link**:
 A URL (`<app origin>?room=<Room Code>`) and corresponding QR code shown on the Lobby screen that pre-fills the Room Code for anyone who opens or scans it.
 _Avoid_: Invite link, share link
+
+**Actual Bet**:
+A host-set Lobby setting (e.g. "5 EUR per 100 chips") establishing the real-money value of chips for a session, stored on `GameState` but not yet used in any win/loss calculation.
+_Avoid_: Stake, buy-in (those imply chips are exchanged for money up front; Actual Bet is only a conversion rate for later settlement)
