@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, type PanInfo } from 'framer-motion';
 import { useGameDispatch } from '../state/GameContext';
 import { generateRoomCode, generateSessionToken } from '../utils/roomCode';
@@ -27,6 +27,11 @@ export function HomeScreen() {
   const [mode, setMode] = useState<Mode>('home');
   const [holding, setHolding] = useState(false);
   const [hoverZone, setHoverZone] = useState<Zone>(null);
+
+  useEffect(() => {
+    if (mode === 'host') host();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   function updateName(value: string) {
     setName(value);
@@ -179,9 +184,6 @@ export function HomeScreen() {
           <>
             <h1>Hold'em Stares</h1>
             <div style={{ flex: 1 }} />
-            <button className="pl-button pl-button--confirm pl-ready" onClick={host} style={{ width: '100%' }}>
-              Host Game
-            </button>
             <p className="pl-hint">hold &amp; drag below the line to go back</p>
           </>
         )}
