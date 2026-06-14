@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import { useGameDispatch, useGameState } from '../state/GameContext';
 import { useNetwork } from '../network/NetworkProvider';
 import { PokerChip } from '../components/PokerChip';
-import { Sheet } from '../components/Sheet';
+import { GearIcon, CheckIcon } from '../components/icons';
 import '../styles/lobby.css';
 
 const TOKEN_KEY = 'poker-lobby-session-token';
@@ -21,7 +21,8 @@ export function LobbyScreen() {
   const joinUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomCode}`;
 
   useEffect(() => {
-    QRCode.toDataURL(joinUrl, { width: 200, margin: 1 }).then(setQrDataUrl);
+    // Transparent background, deep-blue modules to match the lobby card.
+    QRCode.toDataURL(joinUrl, { width: 200, margin: 1, color: { dark: '#16324fff', light: '#00000000' } }).then(setQrDataUrl);
   }, [joinUrl]);
 
   function leaveLobby() {
@@ -32,85 +33,84 @@ export function LobbyScreen() {
 
   return (
     <div className="pl-screen">
-      <Sheet expanded variant={flipped ? 'dark' : 'blue'}>
-        <div className={`pl-flip-container ${flipped ? 'flipped' : ''}`} style={{ flex: 1 }}>
-          <div className="pl-flip-inner" style={{ height: '100%' }}>
-            {/* Front: room info / QR / start */}
-            <div className="pl-flip-face" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <p style={{ textAlign: 'center', margin: '0 0 0.25rem', fontSize: '0.85rem' }}>Room code</p>
-              <p style={{ textAlign: 'center', margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.3em' }}>
-                {state.roomCode}
-              </p>
+      <div className={`pl-flip-container pl-card2 ${flipped ? 'pl-card2--dark' : 'pl-card2--blue'} ${flipped ? 'flipped' : ''}`}>
+        <div className="pl-flip-inner" style={{ height: '100%' }}>
+          {/* Front: room info / QR / start */}
+          <div className="pl-flip-face" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <h1>Hold'em Stares</h1>
+            <p style={{ textAlign: 'center', margin: '0 0 0.25rem', fontSize: '0.85rem' }}>Room code</p>
+            <p style={{ textAlign: 'center', margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.3em' }}>
+              {state.roomCode}
+            </p>
 
-              {qrDataUrl && (
-                <div className="pl-qr-frame">
-                  <img src={qrDataUrl} alt="Scan to join" style={{ width: 140, height: 140, display: 'block' }} />
-                </div>
-              )}
-
-              <p style={{ textAlign: 'center', margin: '0.5rem 0', fontWeight: 700, color: '#1b5e20' }}>
-                {host?.name} (Host)
-              </p>
-
-              {state.players
-                .filter((p) => !p.isHost)
-                .map((p) => (
-                  <p key={p.id} style={{ textAlign: 'center', margin: '0.15rem 0', color: '#1b5e20' }}>
-                    {p.name} — joined
-                  </p>
-                ))}
-
-              {state.players.length < 2 && (
-                <p style={{ textAlign: 'center', fontSize: '0.85rem' }}>Need at least 2 players to start.</p>
-              )}
-
-              <div style={{ flex: 1 }} />
-
-              {isHost && (
-                <button
-                  className="pl-button pl-button--start"
-                  disabled={state.players.length < 2}
-                  onClick={() => dispatch({ type: 'START_GAME' })}
-                >
-                  start game
-                </button>
-              )}
-
-              {isHost && (
-                <button
-                  className="pl-round-button"
-                  aria-label="Settings"
-                  onClick={() => setFlipped(true)}
-                  style={{ position: 'absolute', right: '1rem', bottom: '1rem' }}
-                >
-                  ⚙
-                </button>
-              )}
-            </div>
-
-            {/* Back: host settings */}
-            {isHost && (
-              <div className="pl-flip-face pl-flip-face--back" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <SettingsPanel />
-                <button
-                  className="pl-round-button"
-                  aria-label="Back"
-                  onClick={() => setFlipped(false)}
-                  style={{ position: 'absolute', right: '1rem', bottom: '1rem' }}
-                >
-                  ✓
-                </button>
+            {qrDataUrl && (
+              <div className="pl-qr-frame">
+                <img src={qrDataUrl} alt="Scan to join" style={{ width: 140, height: 140, display: 'block' }} />
               </div>
             )}
+
+            <p style={{ textAlign: 'center', margin: '0.5rem 0', fontWeight: 700, color: '#1b5e20' }}>
+              {host?.name} (Host)
+            </p>
+
+            {state.players
+              .filter((p) => !p.isHost)
+              .map((p) => (
+                <p key={p.id} style={{ textAlign: 'center', margin: '0.15rem 0', color: '#1b5e20' }}>
+                  {p.name} — joined
+                </p>
+              ))}
+
+            {state.players.length < 2 && (
+              <p style={{ textAlign: 'center', fontSize: '0.85rem' }}>Need at least 2 players to start.</p>
+            )}
+
+            <div style={{ flex: 1 }} />
+
+            {isHost && (
+              <button
+                className="pl-button pl-button--start"
+                disabled={state.players.length < 2}
+                onClick={() => dispatch({ type: 'START_GAME' })}
+              >
+                start game
+              </button>
+            )}
+
+            {isHost && (
+              <button
+                className="pl-round-button"
+                aria-label="Settings"
+                onClick={() => setFlipped(true)}
+                style={{ position: 'absolute', right: '1rem', bottom: '1rem' }}
+              >
+                <GearIcon />
+              </button>
+            )}
           </div>
+
+          {/* Back: host settings */}
+          {isHost && (
+            <div className="pl-flip-face pl-flip-face--back" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <SettingsPanel />
+              <button
+                className="pl-round-button"
+                aria-label="Back"
+                onClick={() => setFlipped(false)}
+                style={{ position: 'absolute', right: '1rem', bottom: '1rem' }}
+              >
+                <CheckIcon />
+              </button>
+            </div>
+          )}
         </div>
+      </div>
 
-        {!isHost && <p style={{ textAlign: 'center', marginTop: '1rem' }}>Waiting for host to start the game...</p>}
+      {!isHost && <p style={{ textAlign: 'center', marginTop: '1rem', color: '#efe6d3' }}>Waiting for host to start the game...</p>}
 
-        <button className="pl-button" onClick={leaveLobby} style={{ width: '100%', marginTop: '1rem' }}>
-          Leave Lobby
-        </button>
-      </Sheet>
+      <button className="pl-button" onClick={leaveLobby} style={{ position: 'fixed', bottom: '1rem', left: '1.5rem', right: '1.5rem', maxWidth: 288 - 40, margin: '0 auto' }}>
+        Leave Lobby
+      </button>
     </div>
   );
 }
