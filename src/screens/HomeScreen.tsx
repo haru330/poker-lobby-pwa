@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type PanInfo } from 'framer-motion';
 import { useGameDispatch } from '../state/GameContext';
 import { generateRoomCode, generateSessionToken } from '../utils/roomCode';
 import { createPlayer } from '../utils/player';
-import { Sheet } from '../components/Sheet';
 import '../styles/lobby.css';
 
 const NAME_KEY = 'poker-lobby-username';
 const TOKEN_KEY = 'poker-lobby-session-token';
 
-type Step = 'menu' | 'join';
+type Phase = 'start' | 'picking' | 'join';
 
 export function HomeScreen() {
   const dispatch = useGameDispatch();
@@ -17,11 +16,11 @@ export function HomeScreen() {
     const fromUrl = new URLSearchParams(window.location.search).get('room');
     return localStorage.getItem(NAME_KEY) ?? (fromUrl ? '' : 'Player');
   });
-  const [step, setStep] = useState<Step>('menu');
   const [joinCode, setJoinCode] = useState(() => {
     const fromUrl = new URLSearchParams(window.location.search).get('room');
     return fromUrl ? fromUrl.toUpperCase().slice(0, 4) : '';
   });
+  const [phase, setPhase] = useState<Phase>('start');
 
   function updateName(value: string) {
     setName(value);
@@ -44,73 +43,70 @@ export function HomeScreen() {
     if (!localStorage.getItem(TOKEN_KEY)) {
       localStorage.setItem(TOKEN_KEY, generateSessionToken());
     }
-
-    // The NetworkProvider connects to the host (room code = host's peer ID)
-    // and sends a JOIN message once roomCode + phase are set; the host's
-    // broadcast then populates our player list.
     dispatch({ type: 'SET_ROOM_CODE', roomCode: code });
     dispatch({ type: 'SET_PHASE', phase: 'lobby' });
   }
 
+  function onDragEnd(_: unknown, info: PanInfo) {
+    if (phase === 'start' && info.offset.y > 100) {
+      setPhase('picking');
+    } else if (phase === 'picking') {
+      if (info.offset.x > 70) host();
+      else if (info.offset.x < -70) setPhase('join');
+    }
+  }
+
   const ready = joinCode.length === 4 && name.trim().length > 0;
-  const expanded = step === 'join';
 
   return (
-    <div className="pl-screen">
-      {step === 'menu' && (
-        <>
-          <motion.button
-            className="pl-coin pl-coin--join"
-            initial={{ x: '-150%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 220, damping: 20, delay: 0.15 }}
-            disabled={!name.trim()}
-            onClick={() => setStep('join')}
-          >
-            Join
-          </motion.button>
-          <motion.button
-            className="pl-coin pl-coin--host"
-            initial={{ x: '150%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 220, damping: 20, delay: 0.15 }}
-            disabled={!name.trim()}
-            onClick={host}
-          >
-            Host
-          </motion.button>
-        </>
-      )}
+    <div className="pl-screen pl-screen--table">
+      <div className="pl-table-line" />
 
-      <Sheet expanded={expanded} variant={expanded ? 'orange' : 'paper'}>
-        {step === 'menu' ? (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      <motion.div
+        layout
+        className={`pl-hs-card ${phase === 'start' ? 'pl-hs-card--start' : 'pl-hs-card--center'}`}
+        drag={phase === 'start' ? 'y' : phase === 'picking' ? 'x' : false}
+        dragElastic={0.15}
+        dragSnapToOrigin
+        dragConstraints={phase === 'picking' ? { left: -140, right: 140 } : undefined}
+        onDragEnd={onDragEnd}
+        transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+      >
+        {phase === 'start' && (
+          <>
+            <h1>Hold'em Stares</h1>
+            <p className="pl-hint">drag the card down to the table</p>
+          </>
+        )}
+
+        {phase === 'picking' && (
+          <>
+            <h1>Hold'em Stares</h1>
             <input
               className="pl-input"
               value={name}
               onChange={(e) => updateName(e.target.value)}
               placeholder="Your name"
               maxLength={20}
-              style={{ marginBottom: '1rem' }}
             />
-          </div>
-        ) : (
+            <p className="pl-hint">drag right to host · left to join</p>
+          </>
+        )}
+
+        {phase === 'join' && (
           <>
             <p style={{ margin: '0.5rem 0', textAlign: 'center', fontWeight: 700, letterSpacing: '0.2em' }}>
               ENTER ROOM CODE
             </p>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-              <input
-                className="pl-code-input"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
-                placeholder="____"
-                maxLength={4}
-                style={{ width: '100%' }}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button className="pl-button" onClick={() => setStep('menu')} style={{ flex: '0 0 auto' }}>
+            <input
+              className="pl-code-input"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
+              placeholder="____"
+              maxLength={4}
+            />
+            <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+              <button className="pl-button" onClick={() => setPhase('picking')} style={{ flex: '0 0 auto' }}>
                 Back
               </button>
               <button
@@ -123,7 +119,7 @@ export function HomeScreen() {
             </div>
           </>
         )}
-      </Sheet>
+      </motion.div>
     </div>
   );
 }

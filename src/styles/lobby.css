@@ -71,28 +71,63 @@
   flex-direction: column;
 }
 
-/* --- Coins floating above the collapsed sheet --- */
-.pl-coin {
+/* --- Home: drag-to-table interaction --- */
+.pl-screen--table {
+  background: #2b2a28;
+}
+
+.pl-table-line {
   position: absolute;
-  bottom: calc(15dvh + 2rem);
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
+  top: 50vh;
+  left: 5%;
+  right: 5%;
+  height: 2px;
+  background: #efe6d3;
+  opacity: 0.4;
+}
+
+/* Real playing-card size: 2.5in x 3.5in at 96 CSS px/in = 240 x 336 px */
+.pl-hs-card {
+  position: fixed;
+  left: 50%;
+  width: 240px;
+  height: 336px;
+  margin-left: -120px;
+  box-sizing: border-box;
   border: 2px solid #1c1b19;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  background: #efe6d3;
+  color: #2b2a28;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  cursor: grab;
+  touch-action: none;
 }
 
-.pl-coin--join {
-  left: 12%;
-  background: #e8b773;
+.pl-hs-card--start {
+  top: 40px;
 }
 
-.pl-coin--host {
-  right: 12%;
-  background: #6fa8d6;
+.pl-hs-card--center {
+  top: calc(50vh - 168px);
+}
+
+.pl-hs-card h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.pl-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  text-align: center;
+  opacity: 0.6;
 }
 
 /* --- Flip card (lobby info <-> settings) --- */
