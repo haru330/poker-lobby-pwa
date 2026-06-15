@@ -10,6 +10,7 @@
   box-sizing: border-box;
   background: #2b2a28;
   overflow: hidden;
+  font-family: 'Special Elite', 'Courier New', monospace;
 }
 
 /* --- Shared card container: ~44% larger than a real playing card (346 x 484px) --- */
@@ -66,16 +67,22 @@
   background: #2b2a28;
 }
 
-/* Crossing line at 80% down the viewport (50% + 30%) */
+/* Crossing line at 65% down the viewport */
 .pl-table-line {
   position: fixed;
-  top: 80vh;
+  top: 65vh;
   left: 5%;
   right: 5%;
   height: 2px;
   background: #efe6d3;
   opacity: 0.4;
   pointer-events: none;
+  transition: top 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+}
+
+.pl-table-line--hidden {
+  top: 110vh;
+  opacity: 0;
 }
 
 /* Positioning wrapper for the initial connection-check card: centered on
@@ -154,7 +161,7 @@
   top: 0;
   left: 0;
   width: 50%;
-  height: 80vh;
+  height: 65vh;
   background: rgba(232, 183, 115, 0.35);
 }
 
@@ -162,12 +169,12 @@
   top: 0;
   right: 0;
   width: 50%;
-  height: 80vh;
+  height: 65vh;
   background: rgba(111, 168, 214, 0.35);
 }
 
 .pl-drop-zone--home {
-  top: 80vh;
+  top: 65vh;
   left: 0;
   right: 0;
   bottom: 0;
