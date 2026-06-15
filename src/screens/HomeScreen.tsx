@@ -13,6 +13,10 @@ const CARD_HEIGHT = 484;
 const LINE_RATIO = 0.65;
 const LINE_GAP = 12;
 const LINE_SLIDE_MS = 450;
+// When the card snaps to center (join/host), the split line and home drop
+// zone drop another 20% of the viewport height; the home card itself also
+// rests 20% lower while at the bottom.
+const LINE_SHIFT = 0.2;
 
 type Mode = 'home' | 'join' | 'host';
 type Zone = 'join' | 'host' | 'home' | null;
@@ -63,7 +67,8 @@ export function HomeScreen() {
     dispatch({ type: 'SET_PHASE', phase: 'lobby' });
   }
 
-  const lineY = window.innerHeight * LINE_RATIO;
+  const activeLineRatio = mode === 'home' ? LINE_RATIO : LINE_RATIO + LINE_SHIFT;
+  const lineY = window.innerHeight * activeLineRatio;
 
   function zoneAt(point: { x: number; y: number }): Zone {
     if (point.y >= lineY) return 'home';
@@ -99,8 +104,9 @@ export function HomeScreen() {
 
   const ready = joinCode.length === 4 && name.trim().length > 0;
   const centeredBottom = Math.max(0, window.innerHeight / 2 - CARD_HEIGHT / 2);
-  // Position the card so its top edge sits LINE_GAP px above the table line, regardless of viewport height.
-  const homeBottom = window.innerHeight * (1 - LINE_RATIO) - CARD_HEIGHT + LINE_GAP;
+  // Position the card so its top edge sits LINE_GAP px above the table line, then drop it
+  // another 20% of the viewport height, while the table line itself stays put.
+  const homeBottom = window.innerHeight * (1 - LINE_RATIO - LINE_SHIFT) - CARD_HEIGHT + LINE_GAP;
 
   const modeClass = mode === 'join' ? 'pl-hs-card--hover-join' : mode === 'host' ? 'pl-hs-card--hover-host' : '';
   const hoverClass =
@@ -114,7 +120,10 @@ export function HomeScreen() {
 
   return (
     <div className="pl-screen pl-screen--table">
-      <div className={`pl-table-line ${lineHidden || connecting ? 'pl-table-line--hidden' : ''}`} />
+      <div
+        className={`pl-table-line ${lineHidden || connecting ? 'pl-table-line--hidden' : ''}`}
+        style={lineHidden || connecting ? undefined : { top: `${activeLineRatio * 100}vh` }}
+      />
       {mode === 'home' && !connecting && (
         <>
           <div className={`pl-drop-zone pl-drop-zone--join ${holding ? 'pl-drop-zone--visible' : ''}`}>
@@ -123,13 +132,13 @@ export function HomeScreen() {
           <div className={`pl-drop-zone pl-drop-zone--host ${holding ? 'pl-drop-zone--visible' : ''}`}>
             <span className="pl-drop-zone-label">HOST</span>
           </div>
-          <div className={`pl-drop-zone pl-drop-zone--home ${holding ? 'pl-drop-zone--visible' : ''}`}>
+          <div className={`pl-drop-zone pl-drop-zone--home ${holding ? 'pl-drop-zone--visible' : ''}`} style={{ top: `${activeLineRatio * 100}vh` }}>
             <span className="pl-drop-zone-label">HOME</span>
           </div>
         </>
       )}
       {mode !== 'home' && (
-        <div className={`pl-drop-zone pl-drop-zone--home ${holding ? 'pl-drop-zone--visible' : ''}`}>
+        <div className={`pl-drop-zone pl-drop-zone--home ${holding ? 'pl-drop-zone--visible' : ''}`} style={{ top: `${activeLineRatio * 100}vh` }}>
           <span className="pl-drop-zone-label">HOME</span>
         </div>
       )}
