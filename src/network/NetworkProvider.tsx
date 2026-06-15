@@ -38,6 +38,13 @@ const ICE_SERVERS = [
 // See docs/adr/0004-local-peerjs-server-for-offline-play.md.
 const LOCAL_PEER_EXTRA = { host: window.location.hostname, port: 9000, path: '/' };
 
+const ONLINE_CONFIG: PeerOptions = { config: { iceServers: ICE_SERVERS } };
+
+// True if a config points at the local PeerServer fallback rather than the public broker.
+function isLocalConfig(config: PeerOptions): boolean {
+  return 'host' in config;
+}
+
 /**
  * Probes whether the public PeerJS broker is reachable by attempting to open
  * a throwaway connection to it. Used to decide, per-device, whether to use
@@ -105,6 +112,7 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
   const hostConnRef = useRef<DataConnection | null>(null); // guest side
   const initializedRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fallbackTriedRef = useRef(false);
   const peerConfigRef = useRef<PeerOptions>({ config: { iceServers: ICE_SERVERS } });
   const [peerConfig, setPeerConfig] = useState<PeerOptions | null>(null);
 
@@ -158,6 +166,11 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
     roleRef.current = 'host';
     const peer = new Peer(roomCode, peerConfigRef.current);
     peerRef.current = peer;
+    let opened = false;
+
+    peer.on('open', () => {
+      opened = true;
+    });
 
     peer.on('connection', (conn) => {
       connectionsRef.current.set(conn.connectionId, conn);
@@ -174,7 +187,17 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
       });
     });
 
-    peer.on('error', (err) => console.error('[peer:host]', err));
+    peer.on('error', (err) => {
+      console.error('[peer:host]', err);
+      // The probed config (local PeerServer) couldn't even reach a signaling
+      // server. Retry once against the public broker.
+      if (!opened && !fallbackTriedRef.current && isLocalConfig(peerConfigRef.current)) {
+        fallbackTriedRef.current = true;
+        peerConfigRef.current = ONLINE_CONFIG;
+        peer.destroy();
+        startAsHost(roomCode);
+      }
+    });
   }
 
   function handleHostMessage(conn: DataConnection, msg: NetworkMessage) {
@@ -211,8 +234,12 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
     roleRef.current = 'guest';
     const peer = new Peer(peerConfigRef.current);
     peerRef.current = peer;
+    let opened = false;
 
-    peer.on('open', () => connectToHost(peer, roomCode));
+    peer.on('open', () => {
+      opened = true;
+      connectToHost(peer, roomCode);
+    });
     peer.on('error', (err) => {
       console.error('[peer:guest]', err);
       if (err.type === 'peer-unavailable') {
@@ -220,6 +247,15 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
         alert('Room not found.');
         leave();
         dispatchRef.current({ type: 'LEAVE_LOBBY' });
+        return;
+      }
+      // The probed config (local PeerServer) couldn't even reach a signaling
+      // server. Retry once against the public broker.
+      if (!opened && !fallbackTriedRef.current && isLocalConfig(peerConfigRef.current)) {
+        fallbackTriedRef.current = true;
+        peerConfigRef.current = ONLINE_CONFIG;
+        peer.destroy();
+        startAsGuest(roomCode);
       }
     });
   }
