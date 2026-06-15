@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion, type PanInfo } from 'framer-motion';
 import { useGameDispatch } from '../state/GameContext';
 import { generateRoomCode, generateSessionToken } from '../utils/roomCode';
@@ -10,6 +10,7 @@ const TOKEN_KEY = 'poker-lobby-session-token';
 
 const CARD_HEIGHT = 484;
 const LINE_RATIO = 0.8;
+const LINE_GAP = 12;
 
 type Mode = 'home' | 'join' | 'host';
 type Zone = 'join' | 'host' | 'home' | null;
@@ -27,11 +28,6 @@ export function HomeScreen() {
   const [mode, setMode] = useState<Mode>('home');
   const [holding, setHolding] = useState(false);
   const [hoverZone, setHoverZone] = useState<Zone>(null);
-
-  useEffect(() => {
-    if (mode === 'host') host();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
 
   function updateName(value: string) {
     setName(value);
@@ -94,7 +90,8 @@ export function HomeScreen() {
 
   const ready = joinCode.length === 4 && name.trim().length > 0;
   const centeredBottom = Math.max(0, window.innerHeight / 2 - CARD_HEIGHT / 2);
-  const homeBottom = -(CARD_HEIGHT / 2 + window.innerHeight * 0.1);
+  // Position the card so its top edge sits LINE_GAP px above the table line, regardless of viewport height.
+  const homeBottom = window.innerHeight * (1 - LINE_RATIO) - CARD_HEIGHT + LINE_GAP;
 
   const modeClass = mode === 'join' ? 'pl-hs-card--hover-join' : mode === 'host' ? 'pl-hs-card--hover-host' : '';
   const hoverClass =
@@ -184,6 +181,13 @@ export function HomeScreen() {
           <>
             <h1>Hold'em Stares</h1>
             <div style={{ flex: 1 }} />
+            <button
+              className="pl-button pl-button--confirm pl-ready"
+              onClick={host}
+              style={{ width: '100%' }}
+            >
+              Start Hosting
+            </button>
             <p className="pl-hint">hold &amp; drag below the line to go back</p>
           </>
         )}
