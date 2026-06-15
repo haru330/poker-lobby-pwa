@@ -78,6 +78,18 @@
   pointer-events: none;
 }
 
+/* Positioning wrapper for the initial connection-check card: centered on
+   load, then CSS-transitions `bottom` to slide off-screen once connectivity
+   has been determined, revealing the home card underneath. */
+.pl-connecting-wrap {
+  position: fixed;
+  left: 50%;
+  width: 346px;
+  margin-left: -173px;
+  z-index: 5;
+  transition: bottom 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 /* Positioning wrapper: CSS-transitions `bottom` so the card slides as one
    continuous motion instead of fighting framer's drag-snap transform. */
 .pl-hs-card-wrap {
@@ -289,7 +301,9 @@
 }
 
 .pl-input {
-  font: inherit;
+  font-family: 'Special Elite', 'Courier New', monospace;
+  font-size: 1rem;
+  text-align: center;
   width: 100%;
   box-sizing: border-box;
   padding: 0.6rem;
