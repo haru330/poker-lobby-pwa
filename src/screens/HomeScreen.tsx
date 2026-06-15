@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, type PanInfo } from 'framer-motion';
 import { useGameDispatch } from '../state/GameContext';
+import { useNetwork } from '../network/NetworkProvider';
 import { generateRoomCode, generateSessionToken } from '../utils/roomCode';
 import { createPlayer } from '../utils/player';
 import '../styles/lobby.css';
@@ -18,6 +19,7 @@ type Zone = 'join' | 'host' | 'home' | null;
 
 export function HomeScreen() {
   const dispatch = useGameDispatch();
+  const { connecting } = useNetwork();
   const [name, setName] = useState(() => {
     const fromUrl = new URLSearchParams(window.location.search).get('room');
     return localStorage.getItem(NAME_KEY) ?? (fromUrl ? '' : 'Player');
@@ -112,8 +114,8 @@ export function HomeScreen() {
 
   return (
     <div className="pl-screen pl-screen--table">
-      <div className={`pl-table-line ${lineHidden ? 'pl-table-line--hidden' : ''}`} />
-      {mode === 'home' && (
+      <div className={`pl-table-line ${lineHidden || connecting ? 'pl-table-line--hidden' : ''}`} />
+      {mode === 'home' && !connecting && (
         <>
           <div className={`pl-drop-zone pl-drop-zone--join ${holding ? 'pl-drop-zone--visible' : ''}`}>
             <span className="pl-drop-zone-label">JOIN</span>
@@ -132,18 +134,27 @@ export function HomeScreen() {
         </div>
       )}
 
-      <div className="pl-hs-card-wrap" style={{ bottom: mode === 'home' ? homeBottom : centeredBottom }}>
+      <div className="pl-hs-card-wrap" style={{ bottom: connecting || mode !== 'home' ? centeredBottom : homeBottom }}>
         <motion.div
           className={`pl-hs-card ${modeClass} ${hoverClass}`}
-          drag
+          drag={!connecting}
           dragSnapToOrigin
           dragElastic={0.2}
           onDragStart={() => setHolding(true)}
           onDrag={onDrag}
           onDragEnd={onDragEnd}
           whileTap={{ cursor: 'grabbing' }}
+          style={connecting ? { justifyContent: 'center', textAlign: 'center' } : undefined}
         >
-        {mode === 'home' && (
+        {connecting && (
+          <>
+            <h1>Hold'em Stares</h1>
+            <p style={{ fontSize: '1.1rem' }}>Checking connection&hellip;</p>
+            <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>Detecting whether the internet is reachable.</p>
+          </>
+        )}
+
+        {!connecting && mode === 'home' && (
           <>
             <h1>Hold'em Stares</h1>
             <input

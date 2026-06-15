@@ -10,7 +10,6 @@ const TOKEN_KEY = 'poker-lobby-session-token';
 const NAME_KEY = 'poker-lobby-username';
 const RECONNECT_DELAY_MS = 1500;
 const PROBE_TIMEOUT_MS = 3000;
-const CARD_HEIGHT = 484;
 
 // TURN relay so connections can establish even when both peers are behind
 // restrictive NATs/firewalls (e.g. eduroam) and direct P2P isn't possible.
@@ -74,9 +73,11 @@ interface NetworkApi {
   sendAction: (action: Action) => void;
   /** Tears down the peer connection so the lobby can be re-joined/hosted fresh. */
   leave: () => void;
+  /** True until the initial connectivity probe resolves. */
+  connecting: boolean;
 }
 
-const NetworkContext = createContext<NetworkApi>({ sendAction: () => {}, leave: () => {} });
+const NetworkContext = createContext<NetworkApi>({ sendAction: () => {}, leave: () => {}, connecting: false });
 
 export function useNetwork(): NetworkApi {
   return useContext(NetworkContext);
@@ -106,8 +107,6 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const peerConfigRef = useRef<PeerOptions>({ config: { iceServers: ICE_SERVERS } });
   const [peerConfig, setPeerConfig] = useState<PeerOptions | null>(null);
-  const [showConnecting, setShowConnecting] = useState(true);
-  const [connectingDismissed, setConnectingDismissed] = useState(false);
 
   // --- Probe connectivity once on load, before any host/join option is shown ---
   useEffect(() => {
@@ -116,14 +115,6 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
       setPeerConfig(config);
     });
   }, []);
-
-  // --- Once connectivity is known, slide the connecting card down and out of the way ---
-  useEffect(() => {
-    if (!peerConfig) return;
-    setConnectingDismissed(true);
-    const timer = setTimeout(() => setShowConnecting(false), 450);
-    return () => clearTimeout(timer);
-  }, [peerConfig]);
 
   // --- Start as host or guest once roomCode is known (connectivity already probed) ---
   useEffect(() => {
@@ -310,27 +301,7 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const connectingCenteredBottom = Math.max(0, window.innerHeight / 2 - CARD_HEIGHT / 2);
-  const connectingOffscreenBottom = -(CARD_HEIGHT + 40);
-
   return (
-    <NetworkContext.Provider value={{ sendAction, leave }}>
-      {children}
-      {showConnecting && (
-        <div
-          className="pl-connecting-wrap"
-          style={{ bottom: connectingDismissed ? connectingOffscreenBottom : connectingCenteredBottom }}
-        >
-          <div
-            className="pl-card2 pl-card2--paper"
-            style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}
-          >
-            <h1>Hold'em Stares</h1>
-            <p style={{ fontSize: '1.1rem' }}>Checking connection&hellip;</p>
-            <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>Detecting whether the internet is reachable.</p>
-          </div>
-        </div>
-      )}
-    </NetworkContext.Provider>
+    <NetworkContext.Provider value={{ sendAction, leave, connecting: !peerConfig }}>{children}</NetworkContext.Provider>
   );
 }
