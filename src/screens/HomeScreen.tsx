@@ -17,6 +17,8 @@ const LINE_SLIDE_MS = 450;
 // zone drop another 20% of the viewport height; the home card itself also
 // rests 20% lower while at the bottom.
 const LINE_SHIFT = 0.2;
+// The home card is then raised back up by 5% of the viewport height.
+const HOME_CARD_RAISE = 0.05;
 
 type Mode = 'home' | 'join' | 'host';
 type Zone = 'join' | 'host' | 'home' | null;
@@ -104,9 +106,10 @@ export function HomeScreen() {
 
   const ready = joinCode.length === 4 && name.trim().length > 0;
   const centeredBottom = Math.max(0, window.innerHeight / 2 - CARD_HEIGHT / 2);
-  // Position the card so its top edge sits LINE_GAP px above the table line, then drop it
-  // another 20% of the viewport height, while the table line itself stays put.
-  const homeBottom = window.innerHeight * (1 - LINE_RATIO - LINE_SHIFT) - CARD_HEIGHT + LINE_GAP;
+  // Position the card so its top edge sits LINE_GAP px above the table line, drop it
+  // another 20% of the viewport height, then raise it back up by 5%, while the table
+  // line itself stays put.
+  const homeBottom = window.innerHeight * (1 - LINE_RATIO - LINE_SHIFT + HOME_CARD_RAISE) - CARD_HEIGHT + LINE_GAP;
 
   const modeClass = mode === 'join' ? 'pl-hs-card--hover-join' : mode === 'host' ? 'pl-hs-card--hover-host' : '';
   const hoverClass =
