@@ -1,0 +1,284 @@
+/* In-game screen: green felt table, vertical sections (top/middle/bottom) with
+   magnetic snap navigated via the right-edge nav bar. Bottom section holds the
+   player's personal space (hole cards + chip rack). */
+
+.pg-screen {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #2b2a28;
+  font-family: 'Special Elite', 'Courier New', monospace;
+  color: #efe6d3;
+}
+
+.pg-sections {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 300vh;
+}
+
+.pg-section {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.pg-section--top {
+  top: 0;
+}
+
+.pg-section--middle {
+  top: 100vh;
+}
+
+.pg-section--bottom {
+  top: 200vh;
+  background: #3f6b52;
+  overflow: hidden;
+}
+
+/* --- Right-edge section nav: press & drag to snap between sections --- */
+.pg-nav {
+  position: fixed;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 180px;
+  border-radius: 8px;
+  border: 2px solid #1c1b19;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 20;
+  touch-action: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.pg-nav-segment {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pg-nav-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #efe6d3;
+  opacity: 0.25;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.pg-nav-dot--notify {
+  opacity: 1;
+  background: #e74c3c;
+  box-shadow: 0 0 6px #e74c3c;
+}
+
+.pg-nav-thumb {
+  position: absolute;
+  left: 1px;
+  width: 10px;
+  height: 56px;
+  border-radius: 6px;
+  background: #efe6d3;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+  touch-action: none;
+}
+
+/* --- Split line dividing the chip table from the personal-space drop zone --- */
+.pg-split-line {
+  position: absolute;
+  top: 30%;
+  left: 5%;
+  right: 5%;
+  height: 2px;
+  background: #efe6d3;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* --- Tap area above the split line: double-tap here to check --- */
+.pg-table-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+}
+
+/* --- Chip rack: denomination stacks viewed edge-on, left (1s) to right (25s) --- */
+.pg-chip-rack {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  transition: transform 0.25s ease;
+}
+
+.pg-chip-rack--staged {
+  transition: transform 0.25s ease;
+}
+
+.pg-chip-stack {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  width: 46px;
+  touch-action: none;
+}
+
+.pg-chip-disc {
+  width: 46px;
+  height: 11px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  margin-top: -5px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+.pg-bet-label {
+  position: absolute;
+  top: 1%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+/* --- Personal hole cards --- */
+.pg-hand-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: -160px;
+  width: 280px;
+  height: 320px;
+  margin-left: -140px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  touch-action: none;
+  z-index: 5;
+}
+
+.pg-card {
+  position: relative;
+  width: 130px;
+  height: 182px;
+  perspective: 800px;
+}
+
+.pg-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition: transform 0.35s ease;
+}
+
+.pg-card--revealed .pg-card-inner {
+  transform: rotateY(180deg);
+}
+
+.pg-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border: 2px solid #1c1b19;
+  border-radius: 10px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pg-card-face--back {
+  background: repeating-linear-gradient(45deg, #2f3640 0, #2f3640 8px, #26303a 8px, #26303a 16px);
+}
+
+.pg-card-face--front {
+  background: #efe6d3;
+  color: #2b2a28;
+  transform: rotateY(180deg);
+  flex-direction: column;
+  font-size: 1.4rem;
+  font-weight: 700;
+  gap: 0.15rem;
+}
+
+.pg-card-face--front .pg-card-suit {
+  font-size: 1.8rem;
+}
+
+.pg-card-face--front.pg-card-face--red {
+  color: #c0392b;
+}
+
+/* --- Press-and-hold progress ring shown while peeking at the hand --- */
+.pg-progress-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.pg-progress-ring circle {
+  fill: none;
+  stroke-width: 4;
+}
+
+.pg-progress-ring .pg-progress-ring-bg {
+  stroke: rgba(239, 230, 211, 0.25);
+}
+
+.pg-progress-ring .pg-progress-ring-fg {
+  stroke: #efe6d3;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+/* --- Hand strength readout shown after a longer hold --- */
+.pg-strength {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  margin-bottom: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border: 2px solid #1c1b19;
+  border-radius: 8px;
+  background: #efe6d3;
+  color: #2b2a28;
+  font-size: 0.7rem;
+  text-align: center;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+.pg-strength-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.pg-strength-bar-fill {
+  height: 100%;
+}
