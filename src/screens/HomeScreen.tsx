@@ -9,8 +9,9 @@ const NAME_KEY = 'poker-lobby-username';
 const TOKEN_KEY = 'poker-lobby-session-token';
 
 const CARD_HEIGHT = 484;
-const LINE_RATIO = 0.8;
+const LINE_RATIO = 0.65;
 const LINE_GAP = 12;
+const LINE_SLIDE_MS = 450;
 
 type Mode = 'home' | 'join' | 'host';
 type Zone = 'join' | 'host' | 'home' | null;
@@ -28,6 +29,7 @@ export function HomeScreen() {
   const [mode, setMode] = useState<Mode>('home');
   const [holding, setHolding] = useState(false);
   const [hoverZone, setHoverZone] = useState<Zone>(null);
+  const [lineHidden, setLineHidden] = useState(false);
 
   function updateName(value: string) {
     setName(value);
@@ -42,6 +44,11 @@ export function HomeScreen() {
     dispatch({ type: 'SET_ROOM_CODE', roomCode });
     dispatch({ type: 'ADD_PLAYER', player: createPlayer(sessionToken, name, 100, true) });
     dispatch({ type: 'SET_PHASE', phase: 'lobby' });
+  }
+
+  function createRoom() {
+    setLineHidden(true);
+    setTimeout(host, LINE_SLIDE_MS);
   }
 
   function join() {
@@ -105,7 +112,7 @@ export function HomeScreen() {
 
   return (
     <div className="pl-screen pl-screen--table">
-      <div className="pl-table-line" />
+      <div className={`pl-table-line ${lineHidden ? 'pl-table-line--hidden' : ''}`} />
       {mode === 'home' && (
         <>
           <div className={`pl-drop-zone pl-drop-zone--join ${holding ? 'pl-drop-zone--visible' : ''}`}>
@@ -183,10 +190,10 @@ export function HomeScreen() {
             <div style={{ flex: 1 }} />
             <button
               className="pl-button pl-button--confirm pl-ready"
-              onClick={host}
+              onClick={createRoom}
               style={{ width: '100%' }}
             >
-              Start Hosting
+              Create Room
             </button>
             <p className="pl-hint">hold &amp; drag below the line to go back</p>
           </>

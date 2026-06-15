@@ -4,7 +4,7 @@ import QRCode from 'qrcode';
 import { useGameDispatch, useGameState } from '../state/GameContext';
 import { useNetwork } from '../network/NetworkProvider';
 import { PokerChip } from '../components/PokerChip';
-import { GearIcon, CheckIcon } from '../components/icons';
+import { GearIcon, CheckIcon, ExitIcon } from '../components/icons';
 import '../styles/lobby.css';
 
 const TOKEN_KEY = 'poker-lobby-session-token';
@@ -40,7 +40,14 @@ export function LobbyScreen() {
 
   return (
     <div className="pl-screen pl-screen--table">
-      <div className="pl-table-line" />
+      <button
+        className="pl-round-button"
+        aria-label="Exit lobby"
+        onClick={leaveLobby}
+        style={{ position: 'absolute', left: '1rem', top: '1rem', zIndex: 3 }}
+      >
+        <ExitIcon />
+      </button>
       <motion.div
         className={`pl-flip-container pl-card2 ${flipped ? 'flipped' : ''}`}
         drag
