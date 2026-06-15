@@ -106,7 +106,11 @@ export function HandCards({ cards, description, strength, onFold }: HandCardsPro
       {cards.map((card, i) => {
         const isRed = RED_SUITS.includes(card.suit);
         return (
-          <div className={`pg-card ${stage >= 1 ? 'pg-card--revealed' : ''}`} key={i}>
+          <div
+            className={`pg-card ${stage >= 1 ? 'pg-card--revealed' : ''} ${i === 1 ? 'pg-card--stacked' : ''}`}
+            key={i}
+            style={{ zIndex: i }}
+          >
             <div className="pg-card-inner">
               <div className="pg-card-face pg-card-face--back" />
               <div className={`pg-card-face pg-card-face--front ${isRed ? 'pg-card-face--red' : ''}`}>

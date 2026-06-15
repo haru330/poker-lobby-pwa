@@ -111,42 +111,53 @@
   height: 30%;
 }
 
-/* --- Chip rack: denomination stacks viewed edge-on, left (1s) to right (25s) --- */
+/* --- Chip rack: oval chips viewed from the table, 1s/5s/10s/25s left to right --- */
 .pg-chip-rack {
   position: absolute;
-  top: 8%;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 36%;
+  left: 4%;
+  right: 4%;
   display: flex;
+  justify-content: space-between;
   align-items: flex-end;
-  gap: 14px;
   transition: transform 0.25s ease;
 }
 
 .pg-chip-rack--staged {
-  transition: transform 0.25s ease;
+  top: 30%;
+  pointer-events: auto;
 }
 
 .pg-chip-stack {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   align-items: center;
-  width: 46px;
+  width: 22%;
   touch-action: none;
+  filter: drop-shadow(0 6px 4px rgba(0, 0, 0, 0.35));
 }
 
 .pg-chip-disc {
-  width: 46px;
-  height: 11px;
-  border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  margin-top: -5px;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  width: 100%;
+  aspect-ratio: 2.4 / 1;
+  border-radius: 50%;
+  border: 2px solid rgba(28, 27, 25, 0.45);
+  box-shadow:
+    inset 0 4px 6px rgba(255, 255, 255, 0.25),
+    inset 0 -4px 6px rgba(0, 0, 0, 0.25);
+}
+
+.pg-chip-disc + .pg-chip-disc {
+  margin-top: -62%;
+}
+
+.pg-chip-disc--empty {
+  opacity: 0.2;
 }
 
 .pg-bet-label {
   position: absolute;
-  top: 1%;
+  top: 22%;
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.85rem;
@@ -155,27 +166,28 @@
   white-space: nowrap;
 }
 
-/* --- Personal hole cards --- */
+/* --- Personal hole cards: same footprint as the home/lobby card, stacked face down --- */
 .pg-hand-wrap {
   position: absolute;
   left: 50%;
-  bottom: -160px;
-  width: 280px;
-  height: 320px;
-  margin-left: -140px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 6px;
+  bottom: calc(-242px + 10vh);
+  width: 346px;
+  height: 484px;
+  margin-left: -173px;
   touch-action: none;
   z-index: 5;
 }
 
 .pg-card {
-  position: relative;
-  width: 130px;
-  height: 182px;
-  perspective: 800px;
+  position: absolute;
+  inset: 0;
+  width: 346px;
+  height: 484px;
+  perspective: 1000px;
+}
+
+.pg-card--stacked {
+  transform: translate(18px, -16px) rotate(3deg);
 }
 
 .pg-card-inner {
@@ -212,13 +224,13 @@
   color: #2b2a28;
   transform: rotateY(180deg);
   flex-direction: column;
-  font-size: 1.4rem;
+  font-size: 3.5rem;
   font-weight: 700;
-  gap: 0.15rem;
+  gap: 0.5rem;
 }
 
 .pg-card-face--front .pg-card-suit {
-  font-size: 1.8rem;
+  font-size: 4.5rem;
 }
 
 .pg-card-face--front.pg-card-face--red {

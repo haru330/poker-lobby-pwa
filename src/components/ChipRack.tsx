@@ -2,23 +2,21 @@ import { useRef } from 'react';
 import { motion, type PanInfo } from 'framer-motion';
 import { chipColor } from './PokerChip';
 
-const DENOMS = [25, 10, 5, 1];
+const DENOMS = [1, 5, 10, 25];
+const MAX_VISUAL_DISCS = 6;
 const PX_PER_CHIP = 16;
 const RAISE_HOLD_MS = 400;
 const DOUBLE_TAP_MS = 400;
 
-/** Splits a chip total into stacks of at most 5, ordered left-to-right (1s -> 25s). */
-function breakdown(total: number): { denom: number; count: number }[] {
-  const stacks: { denom: number; count: number }[] = [];
+/** Greedily breaks a chip total into one count per denomination, largest-first. */
+function denomCounts(total: number): number[] {
   let remaining = Math.max(0, Math.round(total));
-  for (const denom of DENOMS) {
-    while (remaining >= denom) {
-      const count = Math.min(5, Math.floor(remaining / denom));
-      stacks.push({ denom, count });
-      remaining -= count * denom;
-    }
+  const counts = new Array(DENOMS.length).fill(0);
+  for (let i = DENOMS.length - 1; i >= 0; i--) {
+    counts[i] = Math.floor(remaining / DENOMS[i]);
+    remaining -= counts[i] * DENOMS[i];
   }
-  return stacks.sort((a, b) => a.denom - b.denom);
+  return counts;
 }
 
 interface ChipStackProps {
@@ -30,15 +28,20 @@ interface ChipStackProps {
 
 function ChipStack({ denom, count, onPanStart, onPan }: ChipStackProps) {
   const { bg, fg } = chipColor(denom);
+  const visible = Math.min(MAX_VISUAL_DISCS, count);
   return (
     <motion.div
       className="pg-chip-stack"
       onPanStart={onPanStart}
       onPan={(_, info) => onPan?.(info, denom)}
     >
-      {Array.from({ length: count }).map((_, i) => (
-        <span key={i} className="pg-chip-disc" style={{ background: bg, borderColor: fg }} />
-      ))}
+      {visible > 0 ? (
+        Array.from({ length: visible }).map((_, i) => (
+          <span key={i} className="pg-chip-disc" style={{ background: bg, borderColor: fg }} />
+        ))
+      ) : (
+        <span className="pg-chip-disc pg-chip-disc--empty" style={{ background: bg, borderColor: fg }} />
+      )}
     </motion.div>
   );
 }
@@ -59,8 +62,8 @@ interface ChipRackProps {
  * past the split line and hold to raise. Double-tapping the table checks.
  */
 export function ChipRack({ chips, betAmount, onBetChange, callAmount, canCheck, onRaise, onCheck }: ChipRackProps) {
-  const baseStacks = breakdown(Math.max(0, chips - betAmount));
-  const stagedStacks = breakdown(betAmount);
+  const baseCounts = denomCounts(Math.max(0, chips - betAmount));
+  const stagedCounts = denomCounts(betAmount);
 
   const panStartBetRef = useRef(betAmount);
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -122,15 +125,14 @@ export function ChipRack({ chips, betAmount, onBetChange, callAmount, canCheck, 
       {betAmount > 0 && <div className="pg-bet-label">Bet: ${betAmount}</div>}
 
       <div className="pg-chip-rack">
-        {baseStacks.map((s, i) => (
-          <ChipStack key={`base-${s.denom}-${i}`} denom={s.denom} count={s.count} onPanStart={handlePanStart} onPan={handlePan} />
+        {DENOMS.map((denom, i) => (
+          <ChipStack key={denom} denom={denom} count={baseCounts[i]} onPanStart={handlePanStart} onPan={handlePan} />
         ))}
       </div>
 
       {betAmount > 0 && (
         <motion.div
           className="pg-chip-rack pg-chip-rack--staged"
-          style={{ top: '20%' }}
           drag
           dragElastic={0.2}
           dragMomentum={false}
@@ -138,8 +140,8 @@ export function ChipRack({ chips, betAmount, onBetChange, callAmount, canCheck, 
           onDrag={handleStagedDrag}
           onDragEnd={handleStagedDragEnd}
         >
-          {stagedStacks.map((s, i) => (
-            <ChipStack key={`staged-${s.denom}-${i}`} denom={s.denom} count={s.count} />
+          {DENOMS.map((denom, i) => (
+            <ChipStack key={denom} denom={denom} count={stagedCounts[i]} />
           ))}
         </motion.div>
       )}
