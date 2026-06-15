@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { motion } from 'framer-motion';
 import Peer, { type DataConnection, type PeerOptions } from 'peerjs';
 import { useGameDispatch, useGameState } from '../state/GameContext';
 import type { NetworkMessage } from './messages';
@@ -105,35 +104,39 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
   const initializedRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const peerConfigRef = useRef<PeerOptions>({ config: { iceServers: ICE_SERVERS } });
-  const [connecting, setConnecting] = useState(false);
+  const [peerConfig, setPeerConfig] = useState<PeerOptions | null>(null);
 
-  // --- Initialization: probe connectivity, then start as host or guest once roomCode is known ---
+  // --- Probe connectivity once on load, before any host/join option is shown ---
+  useEffect(() => {
+    detectPeerConfig().then((config) => {
+      peerConfigRef.current = config;
+      setPeerConfig(config);
+    });
+  }, []);
+
+  // --- Start as host or guest once roomCode is known (connectivity already probed) ---
   useEffect(() => {
     if (initializedRef.current) return;
     if (!state.roomCode) return;
+    if (!peerConfig) return;
 
     const myId = localStorage.getItem(TOKEN_KEY) ?? '';
     const me = state.players.find((p) => p.id === myId);
 
     initializedRef.current = true;
-    setConnecting(true);
 
-    detectPeerConfig().then((config) => {
-      peerConfigRef.current = config;
-      setConnecting(false);
-      if (me?.isHost) {
-        startAsHost(state.roomCode);
-      } else {
-        startAsGuest(state.roomCode);
-      }
-    });
+    if (me?.isHost) {
+      startAsHost(state.roomCode);
+    } else {
+      startAsGuest(state.roomCode);
+    }
 
     return () => {
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       peerRef.current?.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.roomCode]);
+  }, [state.roomCode, peerConfig]);
 
   // --- Host: broadcast full state on every change ---
   useEffect(() => {
@@ -296,30 +299,18 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  if (connecting) {
+  if (!peerConfig) {
     return (
       <div className="pl-screen pl-screen--table">
         <div className="pl-table-line" />
-        <motion.div
+        <div
           className="pl-card2 pl-card2--blue"
           style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}
-          drag
-          dragSnapToOrigin
-          dragElastic={0.2}
-          transition={{ type: 'spring', stiffness: 300, damping: 26 }}
-          onDragEnd={(_, info) => {
-            if (info.point.y >= window.innerHeight * 0.8) {
-              leave();
-              localStorage.removeItem(TOKEN_KEY);
-              dispatchRef.current({ type: 'LEAVE_LOBBY' });
-            }
-          }}
         >
           <h1>Hold'em Stares</h1>
           <p style={{ fontSize: '1.1rem' }}>Checking connection&hellip;</p>
           <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>Detecting whether the internet is reachable.</p>
-          <p className="pl-hint">hold &amp; drag below the line to go back</p>
-        </motion.div>
+        </div>
       </div>
     );
   }
