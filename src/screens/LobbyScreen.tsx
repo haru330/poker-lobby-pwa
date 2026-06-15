@@ -126,7 +126,22 @@ export function LobbyScreen() {
         </div>
       </motion.div>
 
-      {!isHost && <p style={{ textAlign: 'center', marginTop: '1rem', color: '#efe6d3' }}>Waiting for host to start the game...</p>}
+      {!isHost && (
+        <p
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: 'calc(50% + 260px)',
+            transform: 'translateX(-50%)',
+            textAlign: 'center',
+            fontSize: '0.85rem',
+            color: '#efe6d3',
+            opacity: 0.8,
+          }}
+        >
+          Waiting for host to start the game...
+        </p>
+      )}
     </div>
   );
 }
