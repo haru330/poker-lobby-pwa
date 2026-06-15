@@ -81,18 +81,10 @@ export function LobbyScreen() {
                 </p>
               ))}
 
-            {state.players.length < 2 && (
-              <p style={{ textAlign: 'center', fontSize: '0.85rem' }}>Need at least 2 players to start.</p>
-            )}
-
             <div style={{ flex: 1 }} />
 
             {isHost && (
-              <button
-                className="pl-button pl-button--start"
-                disabled={state.players.length < 2}
-                onClick={() => dispatch({ type: 'START_GAME' })}
-              >
+              <button className="pl-button pl-button--start" onClick={() => dispatch({ type: 'START_GAME' })}>
                 start game
               </button>
             )}
